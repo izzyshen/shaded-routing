@@ -632,7 +632,7 @@ void ValidateNavigationStatus(const NavigationStatus& nav_status,
   if (expected_nav_status.has_remaining_leg_length() && (!valhalla::midgard::equal<float>(nav_status.remaining_leg_length(), expected_nav_status.remaining_leg_length(), 0.005f)))
     throw std::runtime_error("Incorrect remaining_leg_length for NavigationStatus - found: " + std::to_string(nav_status.remaining_leg_length()) + " | expected: " + std::to_string(expected_nav_status.remaining_leg_length()));
 
-  if (expected_nav_status.has_remaining_leg_time() && (!valhalla::midgard::equal<float>(nav_status.remaining_leg_time(), expected_nav_status.remaining_leg_time(), (expected_nav_status.remaining_leg_time() * 0.0066f))))
+  if (expected_nav_status.has_remaining_leg_time() && (!valhalla::midgard::equal<float>(nav_status.remaining_leg_time(), expected_nav_status.remaining_leg_time(), (expected_nav_status.remaining_leg_time() * 0.01f))))
     throw std::runtime_error("Incorrect remaining_leg_time for NavigationStatus - found: " + std::to_string(nav_status.remaining_leg_time()) + " | expected: " + std::to_string(expected_nav_status.remaining_leg_time()));
 
   if (expected_nav_status.has_maneuver_index() && (nav_status.maneuver_index() != expected_nav_status.maneuver_index()))
@@ -641,7 +641,7 @@ void ValidateNavigationStatus(const NavigationStatus& nav_status,
   if (expected_nav_status.has_remaining_maneuver_length() && (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_length(), expected_nav_status.remaining_maneuver_length(), 0.005f)))
     throw std::runtime_error("Incorrect remaining_maneuver_length for NavigationStatus - found: " + std::to_string(nav_status.remaining_maneuver_length()) + " | expected: " + std::to_string(expected_nav_status.remaining_maneuver_length()));
 
-  if (expected_nav_status.has_remaining_maneuver_time() && (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_time(), expected_nav_status.remaining_maneuver_time(), (expected_nav_status.remaining_maneuver_time() * 0.0066f))))
+  if (expected_nav_status.has_remaining_maneuver_time() && (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_time(), expected_nav_status.remaining_maneuver_time(), (expected_nav_status.remaining_maneuver_time() * 0.01f))))
     throw std::runtime_error("Incorrect remaining_maneuver_time for NavigationStatus - found: " + std::to_string(nav_status.remaining_maneuver_time()) + " | expected: " + std::to_string(expected_nav_status.remaining_maneuver_time()));
 
   if (expected_nav_status.has_instruction_maneuver_index() && (nav_status.instruction_maneuver_index() != expected_nav_status.instruction_maneuver_index()))
