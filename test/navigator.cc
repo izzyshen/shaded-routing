@@ -227,18 +227,18 @@ void TryTopLevelSetRoute(const std::string& route_json_str,
                              " | expected: " + expected_units);
 
   if (nt.route().trip().status_message() != expected_status_message)
-    throw std::runtime_error(
-        "Incorrect status_message - found: " + nt.route().trip().status_message() +
-        " | expected: " + expected_status_message);
+    throw std::runtime_error("Incorrect status_message - found: " +
+                             nt.route().trip().status_message() + " | expected: " +
+                             expected_status_message);
 
   if (nt.route().trip().status() != expected_status)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().status()) +
-        " | expected: " + std::to_string(expected_status));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().status()) + " | expected: " +
+                             std::to_string(expected_status));
 
   if (nt.route().trip().id() != expected_id)
-    throw std::runtime_error("Incorrect id - found: " + nt.route().trip().id() +
-                             " | expected: " + expected_id);
+    throw std::runtime_error("Incorrect id - found: " + nt.route().trip().id() + " | expected: " +
+                             expected_id);
 }
 
 void TryTopLevelSummarySetRoute(const std::string& route_json_str,
@@ -252,34 +252,34 @@ void TryTopLevelSummarySetRoute(const std::string& route_json_str,
   nt.SetRoute(route_json_str);
 
   if (nt.route().trip().summary().length() != expected_summary_length)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().length()) +
-        " | expected: " + std::to_string(expected_summary_length));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().summary().length()) +
+                             " | expected: " + std::to_string(expected_summary_length));
 
   if (nt.route().trip().summary().time() != expected_summary_time)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().time()) +
-        " | expected: " + std::to_string(expected_summary_time));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().summary().time()) + " | expected: " +
+                             std::to_string(expected_summary_time));
 
   if (nt.route().trip().summary().min_lat() != expected_summary_min_lat)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().min_lat()) +
-        " | expected: " + std::to_string(expected_summary_min_lat));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().summary().min_lat()) +
+                             " | expected: " + std::to_string(expected_summary_min_lat));
 
   if (nt.route().trip().summary().min_lon() != expected_summary_min_lon)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().min_lon()) +
-        " | expected: " + std::to_string(expected_summary_min_lon));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().summary().min_lon()) +
+                             " | expected: " + std::to_string(expected_summary_min_lon));
 
   if (nt.route().trip().summary().max_lat() != expected_summary_max_lat)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().max_lat()) +
-        " | expected: " + std::to_string(expected_summary_max_lat));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().summary().max_lat()) +
+                             " | expected: " + std::to_string(expected_summary_max_lat));
 
   if (nt.route().trip().summary().max_lon() != expected_summary_max_lon)
-    throw std::runtime_error(
-        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().max_lon()) +
-        " | expected: " + std::to_string(expected_summary_max_lon));
+    throw std::runtime_error("Incorrect status - found: " +
+                             std::to_string(nt.route().trip().summary().max_lon()) +
+                             " | expected: " + std::to_string(expected_summary_max_lon));
 }
 
 void TryTopLevelLocationSetRoute(const std::string& route_json_str,
@@ -303,8 +303,8 @@ void TryTopLevelLocationSetRoute(const std::string& route_json_str,
 
   auto& orig = nt.route().trip().locations(0);
   if (orig.street() != expected_orig_street)
-    throw std::runtime_error("Incorrect orig street - found: " + orig.street() +
-                             " | expected: " + expected_orig_street);
+    throw std::runtime_error("Incorrect orig street - found: " + orig.street() + " | expected: " +
+                             expected_orig_street);
 
   if (orig.lat() != expected_orig_lat)
     throw std::runtime_error("Incorrect orig lat - found: " + std::to_string(orig.lat()) +
@@ -315,13 +315,13 @@ void TryTopLevelLocationSetRoute(const std::string& route_json_str,
                              " | expected: " + std::to_string(expected_orig_lon));
 
   if (orig.type() != expected_orig_type)
-    throw std::runtime_error("Incorrect orig type - found: " + orig.type() +
-                             " | expected: " + expected_orig_type);
+    throw std::runtime_error("Incorrect orig type - found: " + orig.type() + " | expected: " +
+                             expected_orig_type);
 
   auto& dest = nt.route().trip().locations(1);
   if (dest.street() != expected_dest_street)
-    throw std::runtime_error("Incorrect dest street - found: " + dest.street() +
-                             " | expected: " + expected_dest_street);
+    throw std::runtime_error("Incorrect dest street - found: " + dest.street() + " | expected: " +
+                             expected_dest_street);
 
   if (dest.lat() != expected_dest_lat)
     throw std::runtime_error("Incorrect dest lat - found: " + std::to_string(dest.lat()) +
@@ -332,8 +332,8 @@ void TryTopLevelLocationSetRoute(const std::string& route_json_str,
                              " | expected: " + std::to_string(expected_dest_lon));
 
   if (dest.type() != expected_dest_type)
-    throw std::runtime_error("Incorrect dest type - found: " + dest.type() +
-                             " | expected: " + expected_dest_type);
+    throw std::runtime_error("Incorrect dest type - found: " + dest.type() + " | expected: " +
+                             expected_dest_type);
 
   if (dest.side_of_street() != expected_dest_side_of_street)
     throw std::runtime_error("Incorrect dest side_of_street - found: " + dest.side_of_street() +
@@ -354,8 +354,8 @@ void TryTopLevelLegSetRoute(const std::string& route_json_str,
                              " | expected: " + std::to_string(expected_leg_maneuver_count));
 
   if (leg.shape() != expected_leg_shape)
-    throw std::runtime_error("Incorrect leg shape - found: " + leg.shape() +
-                             " | expected: " + expected_leg_shape);
+    throw std::runtime_error("Incorrect leg shape - found: " + leg.shape() + " | expected: " +
+                             expected_leg_shape);
 }
 
 void TestTopLevelLegSetRoute() {
@@ -363,16 +363,15 @@ void TestTopLevelLegSetRoute() {
   std::string route_json_str =
       "{\"trip\":{\"language\":\"" + kLanguageTag + "\",\"units\":\"" + kUnitsTag +
       "\",\"status_message\":\"" + kStatusMessageTag + "\",\"status\":" + kStatusTag +
-      ",\"id\":\"" + kIdTag + "\",\"summary\":{\"max_lon\":" + kSummaryMaxLonTag +
-      ",\"max_lat\":" + kSummaryMaxLatTag + ",\"time\":" + kSummaryTimeTag +
-      ",\"length\":" + kSummaryLengthTag + ",\"min_lat\":" + kSummaryMinLatTag +
-      ",\"min_lon\":" + kSummaryMinLonTag + "}" + ",\"locations\":[{\"street\":\"" +
-      kLocationOrigStreetTag + "\",\"lon\":" + kLocationOrigLonTag +
-      ",\"lat\":" + kLocationOrigLatTag + ",\"type\":\"" + kLocationOrigTypeTag +
-      "\"},{\"type\":\"" + kLocationDestTypeTag + "\",\"side_of_street\":\"" +
-      kLocationDestSideOfStreetTag + "\",\"lat\":" + kLocationDestLatTag +
-      ",\"lon\":" + kLocationDestLonTag + ",\"street\":\"" + kLocationDestStreetTag + "\"}]" +
-      ",\"legs\":[{\"shape\":\"" + kLeg1ShapeTag +
+      ",\"id\":\"" + kIdTag + "\",\"summary\":{\"max_lon\":" + kSummaryMaxLonTag + ",\"max_lat\":" +
+      kSummaryMaxLatTag + ",\"time\":" + kSummaryTimeTag + ",\"length\":" + kSummaryLengthTag +
+      ",\"min_lat\":" + kSummaryMinLatTag + ",\"min_lon\":" + kSummaryMinLonTag + "}" +
+      ",\"locations\":[{\"street\":\"" + kLocationOrigStreetTag + "\",\"lon\":" +
+      kLocationOrigLonTag + ",\"lat\":" + kLocationOrigLatTag + ",\"type\":\"" +
+      kLocationOrigTypeTag + "\"},{\"type\":\"" + kLocationDestTypeTag +
+      "\",\"side_of_street\":\"" + kLocationDestSideOfStreetTag + "\",\"lat\":" +
+      kLocationDestLatTag + ",\"lon\":" + kLocationDestLonTag + ",\"street\":\"" +
+      kLocationDestStreetTag + "\"}]" + ",\"legs\":[{\"shape\":\"" + kLeg1ShapeTag +
       "\",\"summary\":{\"max_lon\":-76.276863,\"max_lat\":40.063713,\"time\":287,\"length\":2.168,"
       "\"min_lat\":40.042500,\"min_lon\":-76.299324}" +
       ",\"maneuvers\":[{\"travel_mode\":\"drive\",\"begin_shape_index\":0,\"length\":0.081,"
@@ -525,9 +524,9 @@ void TryRouteManeuverCount(NavigatorTest& nav,
   int maneuver_count = nav.route().trip().legs(leg_index).maneuvers_size();
 
   if (maneuver_count != expected_leg_maneuver_count)
-    throw std::runtime_error(
-        "Incorrect maneuver count for route - found: " + std::to_string(maneuver_count) +
-        " | expected: " + std::to_string(expected_leg_maneuver_count));
+    throw std::runtime_error("Incorrect maneuver count for route - found: " +
+                             std::to_string(maneuver_count) + " | expected: " +
+                             std::to_string(expected_leg_maneuver_count));
 }
 
 void TryRouteLanguage(NavigatorTest& nav, std::string expected_language) {
@@ -535,8 +534,8 @@ void TryRouteLanguage(NavigatorTest& nav, std::string expected_language) {
   std::string language = nav.route().trip().language();
 
   if (language != expected_language)
-    throw std::runtime_error("Incorrect language for route - found: " + language +
-                             " | expected: " + expected_language);
+    throw std::runtime_error("Incorrect language for route - found: " + language + " | expected: " +
+                             expected_language);
 }
 
 void TryRouteUnits(NavigatorTest& nav, std::string expected_units, bool expected_units_boolean) {
@@ -545,8 +544,8 @@ void TryRouteUnits(NavigatorTest& nav, std::string expected_units, bool expected
   bool units_boolean = nav.HasKilometerUnits();
 
   if (units != expected_units)
-    throw std::runtime_error("Incorrect units for route - found: " + units +
-                             " | expected: " + expected_units);
+    throw std::runtime_error("Incorrect units for route - found: " + units + " | expected: " +
+                             expected_units);
 
   if (units_boolean != expected_units_boolean)
     throw std::runtime_error("Incorrect units boolean for route - found: " +
@@ -577,15 +576,15 @@ void TryRemainingLegValues(NavigatorTest& nav,
   uint32_t remaining_leg_time = nav.remaining_leg_values().at(index).second;
 
   if (!valhalla::midgard::equal<float>(remaining_leg_length, expected_remaining_leg_length, 0.005f))
-    throw std::runtime_error(
-        "Incorrect remaining leg length - found: " + std::to_string(remaining_leg_length) +
-        " | expected: " + std::to_string(expected_remaining_leg_length));
+    throw std::runtime_error("Incorrect remaining leg length - found: " +
+                             std::to_string(remaining_leg_length) + " | expected: " +
+                             std::to_string(expected_remaining_leg_length));
 
   if (!valhalla::midgard::equal<float>(remaining_leg_time, expected_remaining_leg_time,
                                        (expected_remaining_leg_time * 0.0066f)))
-    throw std::runtime_error(
-        "Incorrect remaining leg time - found: " + std::to_string(remaining_leg_time) +
-        " | expected: " + std::to_string(expected_remaining_leg_time));
+    throw std::runtime_error("Incorrect remaining leg time - found: " +
+                             std::to_string(remaining_leg_time) + " | expected: " +
+                             std::to_string(expected_remaining_leg_time));
 }
 
 void TryLength(std::string method, float found_length, float expected_length) {
@@ -715,28 +714,28 @@ void ValidateNavigationStatus(const NavigationStatus& nav_status,
 
   if (expected_nav_status.has_route_state() &&
       (nav_status.route_state() != expected_nav_status.route_state()))
-    throw std::runtime_error(
-        "Incorrect route state for NavigationStatus - found: " +
-        NavigationStatus_RouteState_Name(nav_status.route_state()) +
-        " | expected: " + NavigationStatus_RouteState_Name(expected_nav_status.route_state()));
+    throw std::runtime_error("Incorrect route state for NavigationStatus - found: " +
+                             NavigationStatus_RouteState_Name(nav_status.route_state()) +
+                             " | expected: " +
+                             NavigationStatus_RouteState_Name(expected_nav_status.route_state()));
 
   if (expected_nav_status.has_lat() &&
       (!valhalla::midgard::equal<float>(nav_status.lat(), expected_nav_status.lat(), 0.00002f)))
-    throw std::runtime_error(
-        "Incorrect lat for NavigationStatus - found: " + std::to_string(nav_status.lat()) +
-        " | expected: " + std::to_string(expected_nav_status.lat()));
+    throw std::runtime_error("Incorrect lat for NavigationStatus - found: " +
+                             std::to_string(nav_status.lat()) + " | expected: " +
+                             std::to_string(expected_nav_status.lat()));
 
   if (expected_nav_status.has_lon() &&
       (!valhalla::midgard::equal<float>(nav_status.lon(), expected_nav_status.lon(), 0.00002f)))
-    throw std::runtime_error(
-        "Incorrect lon for NavigationStatus - found: " + std::to_string(nav_status.lon()) +
-        " | expected: " + std::to_string(expected_nav_status.lon()));
+    throw std::runtime_error("Incorrect lon for NavigationStatus - found: " +
+                             std::to_string(nav_status.lon()) + " | expected: " +
+                             std::to_string(expected_nav_status.lon()));
 
   if (expected_nav_status.has_leg_index() &&
       (nav_status.leg_index() != expected_nav_status.leg_index()))
     throw std::runtime_error("Incorrect leg_index for NavigationStatus - found: " +
-                             std::to_string(nav_status.leg_index()) +
-                             " | expected: " + std::to_string(expected_nav_status.leg_index()));
+                             std::to_string(nav_status.leg_index()) + " | expected: " +
+                             std::to_string(expected_nav_status.leg_index()));
 
   if (expected_nav_status.has_remaining_leg_length() &&
       (!valhalla::midgard::equal<float>(nav_status.remaining_leg_length(),
@@ -762,34 +761,34 @@ void ValidateNavigationStatus(const NavigationStatus& nav_status,
   if (expected_nav_status.has_remaining_maneuver_length() &&
       (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_length(),
                                         expected_nav_status.remaining_maneuver_length(), 0.005f)))
-    throw std::runtime_error(
-        "Incorrect remaining_maneuver_length for NavigationStatus - found: " +
-        std::to_string(nav_status.remaining_maneuver_length()) +
-        " | expected: " + std::to_string(expected_nav_status.remaining_maneuver_length()));
+    throw std::runtime_error("Incorrect remaining_maneuver_length for NavigationStatus - found: " +
+                             std::to_string(nav_status.remaining_maneuver_length()) +
+                             " | expected: " +
+                             std::to_string(expected_nav_status.remaining_maneuver_length()));
 
   if (expected_nav_status.has_remaining_maneuver_time() &&
       (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_time(),
                                         expected_nav_status.remaining_maneuver_time(),
                                         (expected_nav_status.remaining_maneuver_time() * 0.01f))))
-    throw std::runtime_error(
-        "Incorrect remaining_maneuver_time for NavigationStatus - found: " +
-        std::to_string(nav_status.remaining_maneuver_time()) +
-        " | expected: " + std::to_string(expected_nav_status.remaining_maneuver_time()));
+    throw std::runtime_error("Incorrect remaining_maneuver_time for NavigationStatus - found: " +
+                             std::to_string(nav_status.remaining_maneuver_time()) +
+                             " | expected: " +
+                             std::to_string(expected_nav_status.remaining_maneuver_time()));
 
   if (expected_nav_status.has_instruction_maneuver_index() &&
       (nav_status.instruction_maneuver_index() != expected_nav_status.instruction_maneuver_index()))
-    throw std::runtime_error(
-        "Incorrect instruction maneuver_index for NavigationStatus - found: " +
-        std::to_string(nav_status.instruction_maneuver_index()) +
-        " | expected: " + std::to_string(expected_nav_status.instruction_maneuver_index()));
+    throw std::runtime_error("Incorrect instruction maneuver_index for NavigationStatus - found: " +
+                             std::to_string(nav_status.instruction_maneuver_index()) +
+                             " | expected: " +
+                             std::to_string(expected_nav_status.instruction_maneuver_index()));
 
   if (expected_nav_status.has_transition_alert_length() &&
       (!valhalla::midgard::equal<float>(nav_status.transition_alert_length(),
                                         expected_nav_status.transition_alert_length(), 0.005f)))
-    throw std::runtime_error(
-        "Incorrect transition_alert_length for NavigationStatus - found: " +
-        std::to_string(nav_status.transition_alert_length()) +
-        " | expected: " + std::to_string(expected_nav_status.transition_alert_length()));
+    throw std::runtime_error("Incorrect transition_alert_length for NavigationStatus - found: " +
+                             std::to_string(nav_status.transition_alert_length()) +
+                             " | expected: " +
+                             std::to_string(expected_nav_status.transition_alert_length()));
 }
 
 void ValidateOnRouteLocationCloseToOrigin(bool found_value,
@@ -822,9 +821,9 @@ void TryRouteOnLocationChanged(NavigatorTest& nav,
 void TryUsedInstructions(bool found_value, bool expected_value) {
 
   if (found_value != expected_value)
-    throw std::runtime_error(
-        "Incorrect instruction used value - found: " + std::string(found_value ? "true" : "false") +
-        " | expected: " + std::string(expected_value ? "true" : "false"));
+    throw std::runtime_error("Incorrect instruction used value - found: " +
+                             std::string(found_value ? "true" : "false") + " | expected: " +
+                             std::string(expected_value ? "true" : "false"));
 }
 
 void TryGetWordCount(const NavigatorTest& nav,
@@ -835,8 +834,8 @@ void TryGetWordCount(const NavigatorTest& nav,
 
   if (found_word_count != expected_word_count)
     throw std::runtime_error("Incorrect word count for the instruction=\"" + instruction +
-                             "\" - found: " + std::to_string(found_word_count) +
-                             " | expected: " + std::to_string(expected_word_count));
+                             "\" - found: " + std::to_string(found_word_count) + " | expected: " +
+                             std::to_string(expected_word_count));
 }
 
 void TestGetWordCount(const NavigatorTest& nav) {
@@ -45520,9 +45519,9 @@ void TestRoadBikeLunchRideLoop() {
 void TryIsTimeWithinBounds(bool found, bool expected) {
 
   if (found != expected)
-    throw std::runtime_error(
-        "Incorrect IsTimeWithinBounds value - found: " + std::string(found ? "true" : "false") +
-        " | expected: " + std::string(expected ? "true" : "false"));
+    throw std::runtime_error("Incorrect IsTimeWithinBounds value - found: " +
+                             std::string(found ? "true" : "false") + " | expected: " +
+                             std::string(expected ? "true" : "false"));
 }
 
 void TestIsTimeWithinBounds() {
