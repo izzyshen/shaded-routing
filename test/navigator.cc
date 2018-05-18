@@ -227,18 +227,18 @@ void TryTopLevelSetRoute(const std::string& route_json_str,
                              " | expected: " + expected_units);
 
   if (nt.route().trip().status_message() != expected_status_message)
-    throw std::runtime_error("Incorrect status_message - found: " +
-                             nt.route().trip().status_message() + " | expected: " +
-                             expected_status_message);
+    throw std::runtime_error(
+        "Incorrect status_message - found: " + nt.route().trip().status_message() +
+        " | expected: " + expected_status_message);
 
   if (nt.route().trip().status() != expected_status)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().status()) + " | expected: " +
-                             std::to_string(expected_status));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().status()) +
+        " | expected: " + std::to_string(expected_status));
 
   if (nt.route().trip().id() != expected_id)
-    throw std::runtime_error("Incorrect id - found: " + nt.route().trip().id() + " | expected: " +
-                             expected_id);
+    throw std::runtime_error("Incorrect id - found: " + nt.route().trip().id() +
+                             " | expected: " + expected_id);
 }
 
 void TryTopLevelSummarySetRoute(const std::string& route_json_str,
@@ -252,34 +252,34 @@ void TryTopLevelSummarySetRoute(const std::string& route_json_str,
   nt.SetRoute(route_json_str);
 
   if (nt.route().trip().summary().length() != expected_summary_length)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().summary().length()) +
-                             " | expected: " + std::to_string(expected_summary_length));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().length()) +
+        " | expected: " + std::to_string(expected_summary_length));
 
   if (nt.route().trip().summary().time() != expected_summary_time)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().summary().time()) + " | expected: " +
-                             std::to_string(expected_summary_time));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().time()) +
+        " | expected: " + std::to_string(expected_summary_time));
 
   if (nt.route().trip().summary().min_lat() != expected_summary_min_lat)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().summary().min_lat()) +
-                             " | expected: " + std::to_string(expected_summary_min_lat));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().min_lat()) +
+        " | expected: " + std::to_string(expected_summary_min_lat));
 
   if (nt.route().trip().summary().min_lon() != expected_summary_min_lon)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().summary().min_lon()) +
-                             " | expected: " + std::to_string(expected_summary_min_lon));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().min_lon()) +
+        " | expected: " + std::to_string(expected_summary_min_lon));
 
   if (nt.route().trip().summary().max_lat() != expected_summary_max_lat)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().summary().max_lat()) +
-                             " | expected: " + std::to_string(expected_summary_max_lat));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().max_lat()) +
+        " | expected: " + std::to_string(expected_summary_max_lat));
 
   if (nt.route().trip().summary().max_lon() != expected_summary_max_lon)
-    throw std::runtime_error("Incorrect status - found: " +
-                             std::to_string(nt.route().trip().summary().max_lon()) +
-                             " | expected: " + std::to_string(expected_summary_max_lon));
+    throw std::runtime_error(
+        "Incorrect status - found: " + std::to_string(nt.route().trip().summary().max_lon()) +
+        " | expected: " + std::to_string(expected_summary_max_lon));
 }
 
 void TryTopLevelLocationSetRoute(const std::string& route_json_str,
@@ -303,8 +303,8 @@ void TryTopLevelLocationSetRoute(const std::string& route_json_str,
 
   auto& orig = nt.route().trip().locations(0);
   if (orig.street() != expected_orig_street)
-    throw std::runtime_error("Incorrect orig street - found: " + orig.street() + " | expected: " +
-                             expected_orig_street);
+    throw std::runtime_error("Incorrect orig street - found: " + orig.street() +
+                             " | expected: " + expected_orig_street);
 
   if (orig.lat() != expected_orig_lat)
     throw std::runtime_error("Incorrect orig lat - found: " + std::to_string(orig.lat()) +
@@ -315,13 +315,13 @@ void TryTopLevelLocationSetRoute(const std::string& route_json_str,
                              " | expected: " + std::to_string(expected_orig_lon));
 
   if (orig.type() != expected_orig_type)
-    throw std::runtime_error("Incorrect orig type - found: " + orig.type() + " | expected: " +
-                             expected_orig_type);
+    throw std::runtime_error("Incorrect orig type - found: " + orig.type() +
+                             " | expected: " + expected_orig_type);
 
   auto& dest = nt.route().trip().locations(1);
   if (dest.street() != expected_dest_street)
-    throw std::runtime_error("Incorrect dest street - found: " + dest.street() + " | expected: " +
-                             expected_dest_street);
+    throw std::runtime_error("Incorrect dest street - found: " + dest.street() +
+                             " | expected: " + expected_dest_street);
 
   if (dest.lat() != expected_dest_lat)
     throw std::runtime_error("Incorrect dest lat - found: " + std::to_string(dest.lat()) +
@@ -332,8 +332,8 @@ void TryTopLevelLocationSetRoute(const std::string& route_json_str,
                              " | expected: " + std::to_string(expected_dest_lon));
 
   if (dest.type() != expected_dest_type)
-    throw std::runtime_error("Incorrect dest type - found: " + dest.type() + " | expected: " +
-                             expected_dest_type);
+    throw std::runtime_error("Incorrect dest type - found: " + dest.type() +
+                             " | expected: " + expected_dest_type);
 
   if (dest.side_of_street() != expected_dest_side_of_street)
     throw std::runtime_error("Incorrect dest side_of_street - found: " + dest.side_of_street() +
@@ -354,23 +354,23 @@ void TryTopLevelLegSetRoute(const std::string& route_json_str,
                              " | expected: " + std::to_string(expected_leg_maneuver_count));
 
   if (leg.shape() != expected_leg_shape)
-    throw std::runtime_error("Incorrect leg shape - found: " + leg.shape() + " | expected: " +
-                             expected_leg_shape);
+    throw std::runtime_error("Incorrect leg shape - found: " + leg.shape() +
+                             " | expected: " + expected_leg_shape);
 }
 
 void TestTopLevelLegSetRoute() {
   // Tagged route json string
   std::string route_json_str =
       "{\"trip\":{\"language\":\"" + kLanguageTag + "\",\"units\":\"" + kUnitsTag +
-      "\",\"status_message\":\"" + kStatusMessageTag + "\",\"status\":" + kStatusTag +
-      ",\"id\":\"" + kIdTag + "\",\"summary\":{\"max_lon\":" + kSummaryMaxLonTag + ",\"max_lat\":" +
-      kSummaryMaxLatTag + ",\"time\":" + kSummaryTimeTag + ",\"length\":" + kSummaryLengthTag +
-      ",\"min_lat\":" + kSummaryMinLatTag + ",\"min_lon\":" + kSummaryMinLonTag + "}" +
-      ",\"locations\":[{\"street\":\"" + kLocationOrigStreetTag + "\",\"lon\":" +
-      kLocationOrigLonTag + ",\"lat\":" + kLocationOrigLatTag + ",\"type\":\"" +
-      kLocationOrigTypeTag + "\"},{\"type\":\"" + kLocationDestTypeTag +
-      "\",\"side_of_street\":\"" + kLocationDestSideOfStreetTag + "\",\"lat\":" +
-      kLocationDestLatTag + ",\"lon\":" + kLocationDestLonTag + ",\"street\":\"" +
+      "\",\"status_message\":\"" + kStatusMessageTag + "\",\"status\":" + kStatusTag + ",\"id\":\"" +
+      kIdTag + "\",\"summary\":{\"max_lon\":" + kSummaryMaxLonTag +
+      ",\"max_lat\":" + kSummaryMaxLatTag + ",\"time\":" + kSummaryTimeTag +
+      ",\"length\":" + kSummaryLengthTag + ",\"min_lat\":" + kSummaryMinLatTag +
+      ",\"min_lon\":" + kSummaryMinLonTag + "}" + ",\"locations\":[{\"street\":\"" +
+      kLocationOrigStreetTag + "\",\"lon\":" + kLocationOrigLonTag +
+      ",\"lat\":" + kLocationOrigLatTag + ",\"type\":\"" + kLocationOrigTypeTag + "\"},{\"type\":\"" +
+      kLocationDestTypeTag + "\",\"side_of_street\":\"" + kLocationDestSideOfStreetTag +
+      "\",\"lat\":" + kLocationDestLatTag + ",\"lon\":" + kLocationDestLonTag + ",\"street\":\"" +
       kLocationDestStreetTag + "\"}]" + ",\"legs\":[{\"shape\":\"" + kLeg1ShapeTag +
       "\",\"summary\":{\"max_lon\":-76.276863,\"max_lat\":40.063713,\"time\":287,\"length\":2.168,"
       "\"min_lat\":40.042500,\"min_lon\":-76.299324}" +
@@ -517,16 +517,14 @@ void TryRouteLegCount(NavigatorTest& nav, int expected_leg_count) {
                              " | expected: " + std::to_string(expected_leg_count));
 }
 
-void TryRouteManeuverCount(NavigatorTest& nav,
-                           uint32_t leg_index,
-                           int expected_leg_maneuver_count) {
+void TryRouteManeuverCount(NavigatorTest& nav, uint32_t leg_index, int expected_leg_maneuver_count) {
 
   int maneuver_count = nav.route().trip().legs(leg_index).maneuvers_size();
 
   if (maneuver_count != expected_leg_maneuver_count)
-    throw std::runtime_error("Incorrect maneuver count for route - found: " +
-                             std::to_string(maneuver_count) + " | expected: " +
-                             std::to_string(expected_leg_maneuver_count));
+    throw std::runtime_error(
+        "Incorrect maneuver count for route - found: " + std::to_string(maneuver_count) +
+        " | expected: " + std::to_string(expected_leg_maneuver_count));
 }
 
 void TryRouteLanguage(NavigatorTest& nav, std::string expected_language) {
@@ -534,8 +532,8 @@ void TryRouteLanguage(NavigatorTest& nav, std::string expected_language) {
   std::string language = nav.route().trip().language();
 
   if (language != expected_language)
-    throw std::runtime_error("Incorrect language for route - found: " + language + " | expected: " +
-                             expected_language);
+    throw std::runtime_error("Incorrect language for route - found: " + language +
+                             " | expected: " + expected_language);
 }
 
 void TryRouteUnits(NavigatorTest& nav, std::string expected_units, bool expected_units_boolean) {
@@ -544,8 +542,8 @@ void TryRouteUnits(NavigatorTest& nav, std::string expected_units, bool expected
   bool units_boolean = nav.HasKilometerUnits();
 
   if (units != expected_units)
-    throw std::runtime_error("Incorrect units for route - found: " + units + " | expected: " +
-                             expected_units);
+    throw std::runtime_error("Incorrect units for route - found: " + units +
+                             " | expected: " + expected_units);
 
   if (units_boolean != expected_units_boolean)
     throw std::runtime_error("Incorrect units boolean for route - found: " +
@@ -576,15 +574,15 @@ void TryRemainingLegValues(NavigatorTest& nav,
   uint32_t remaining_leg_time = nav.remaining_leg_values().at(index).second;
 
   if (!valhalla::midgard::equal<float>(remaining_leg_length, expected_remaining_leg_length, 0.005f))
-    throw std::runtime_error("Incorrect remaining leg length - found: " +
-                             std::to_string(remaining_leg_length) + " | expected: " +
-                             std::to_string(expected_remaining_leg_length));
+    throw std::runtime_error(
+        "Incorrect remaining leg length - found: " + std::to_string(remaining_leg_length) +
+        " | expected: " + std::to_string(expected_remaining_leg_length));
 
   if (!valhalla::midgard::equal<float>(remaining_leg_time, expected_remaining_leg_time,
                                        (expected_remaining_leg_time * 0.0066f)))
-    throw std::runtime_error("Incorrect remaining leg time - found: " +
-                             std::to_string(remaining_leg_time) + " | expected: " +
-                             std::to_string(expected_remaining_leg_time));
+    throw std::runtime_error(
+        "Incorrect remaining leg time - found: " + std::to_string(remaining_leg_time) +
+        " | expected: " + std::to_string(expected_remaining_leg_time));
 }
 
 void TryLength(std::string method, float found_length, float expected_length) {
@@ -714,28 +712,28 @@ void ValidateNavigationStatus(const NavigationStatus& nav_status,
 
   if (expected_nav_status.has_route_state() &&
       (nav_status.route_state() != expected_nav_status.route_state()))
-    throw std::runtime_error("Incorrect route state for NavigationStatus - found: " +
-                             NavigationStatus_RouteState_Name(nav_status.route_state()) +
-                             " | expected: " +
-                             NavigationStatus_RouteState_Name(expected_nav_status.route_state()));
+    throw std::runtime_error(
+        "Incorrect route state for NavigationStatus - found: " +
+        NavigationStatus_RouteState_Name(nav_status.route_state()) +
+        " | expected: " + NavigationStatus_RouteState_Name(expected_nav_status.route_state()));
 
   if (expected_nav_status.has_lat() &&
       (!valhalla::midgard::equal<float>(nav_status.lat(), expected_nav_status.lat(), 0.00002f)))
-    throw std::runtime_error("Incorrect lat for NavigationStatus - found: " +
-                             std::to_string(nav_status.lat()) + " | expected: " +
-                             std::to_string(expected_nav_status.lat()));
+    throw std::runtime_error(
+        "Incorrect lat for NavigationStatus - found: " + std::to_string(nav_status.lat()) +
+        " | expected: " + std::to_string(expected_nav_status.lat()));
 
   if (expected_nav_status.has_lon() &&
       (!valhalla::midgard::equal<float>(nav_status.lon(), expected_nav_status.lon(), 0.00002f)))
-    throw std::runtime_error("Incorrect lon for NavigationStatus - found: " +
-                             std::to_string(nav_status.lon()) + " | expected: " +
-                             std::to_string(expected_nav_status.lon()));
+    throw std::runtime_error(
+        "Incorrect lon for NavigationStatus - found: " + std::to_string(nav_status.lon()) +
+        " | expected: " + std::to_string(expected_nav_status.lon()));
 
   if (expected_nav_status.has_leg_index() &&
       (nav_status.leg_index() != expected_nav_status.leg_index()))
     throw std::runtime_error("Incorrect leg_index for NavigationStatus - found: " +
-                             std::to_string(nav_status.leg_index()) + " | expected: " +
-                             std::to_string(expected_nav_status.leg_index()));
+                             std::to_string(nav_status.leg_index()) +
+                             " | expected: " + std::to_string(expected_nav_status.leg_index()));
 
   if (expected_nav_status.has_remaining_leg_length() &&
       (!valhalla::midgard::equal<float>(nav_status.remaining_leg_length(),
@@ -755,39 +753,37 @@ void ValidateNavigationStatus(const NavigationStatus& nav_status,
   if (expected_nav_status.has_maneuver_index() &&
       (nav_status.maneuver_index() != expected_nav_status.maneuver_index()))
     throw std::runtime_error("Incorrect maneuver_index for NavigationStatus - found: " +
-                             std::to_string(nav_status.maneuver_index()) + " | expected: " +
-                             std::to_string(expected_nav_status.maneuver_index()));
+                             std::to_string(nav_status.maneuver_index()) +
+                             " | expected: " + std::to_string(expected_nav_status.maneuver_index()));
 
   if (expected_nav_status.has_remaining_maneuver_length() &&
       (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_length(),
                                         expected_nav_status.remaining_maneuver_length(), 0.005f)))
-    throw std::runtime_error("Incorrect remaining_maneuver_length for NavigationStatus - found: " +
-                             std::to_string(nav_status.remaining_maneuver_length()) +
-                             " | expected: " +
-                             std::to_string(expected_nav_status.remaining_maneuver_length()));
+    throw std::runtime_error(
+        "Incorrect remaining_maneuver_length for NavigationStatus - found: " +
+        std::to_string(nav_status.remaining_maneuver_length()) +
+        " | expected: " + std::to_string(expected_nav_status.remaining_maneuver_length()));
 
   if (expected_nav_status.has_remaining_maneuver_time() &&
       (!valhalla::midgard::equal<float>(nav_status.remaining_maneuver_time(),
                                         expected_nav_status.remaining_maneuver_time(),
                                         (expected_nav_status.remaining_maneuver_time() * 0.01f))))
     throw std::runtime_error("Incorrect remaining_maneuver_time for NavigationStatus - found: " +
-                             std::to_string(nav_status.remaining_maneuver_time()) +
-                             " | expected: " +
+                             std::to_string(nav_status.remaining_maneuver_time()) + " | expected: " +
                              std::to_string(expected_nav_status.remaining_maneuver_time()));
 
   if (expected_nav_status.has_instruction_maneuver_index() &&
       (nav_status.instruction_maneuver_index() != expected_nav_status.instruction_maneuver_index()))
-    throw std::runtime_error("Incorrect instruction maneuver_index for NavigationStatus - found: " +
-                             std::to_string(nav_status.instruction_maneuver_index()) +
-                             " | expected: " +
-                             std::to_string(expected_nav_status.instruction_maneuver_index()));
+    throw std::runtime_error(
+        "Incorrect instruction maneuver_index for NavigationStatus - found: " +
+        std::to_string(nav_status.instruction_maneuver_index()) +
+        " | expected: " + std::to_string(expected_nav_status.instruction_maneuver_index()));
 
   if (expected_nav_status.has_transition_alert_length() &&
       (!valhalla::midgard::equal<float>(nav_status.transition_alert_length(),
                                         expected_nav_status.transition_alert_length(), 0.005f)))
     throw std::runtime_error("Incorrect transition_alert_length for NavigationStatus - found: " +
-                             std::to_string(nav_status.transition_alert_length()) +
-                             " | expected: " +
+                             std::to_string(nav_status.transition_alert_length()) + " | expected: " +
                              std::to_string(expected_nav_status.transition_alert_length()));
 }
 
@@ -797,8 +793,8 @@ void ValidateOnRouteLocationCloseToOrigin(bool found_value,
   if (found_value != expected_on_route_location_close_to_origin)
     throw std::runtime_error(
         "Incorrect OnRouteLocationCloseToOrigin boolean - found: " +
-        std::string(found_value ? "true" : "false") + " | expected: " +
-        std::string(expected_on_route_location_close_to_origin ? "true" : "false"));
+        std::string(found_value ? "true" : "false") +
+        " | expected: " + std::string(expected_on_route_location_close_to_origin ? "true" : "false"));
 }
 
 void TrySnapToRoute(NavigatorTest& nav,
@@ -821,9 +817,9 @@ void TryRouteOnLocationChanged(NavigatorTest& nav,
 void TryUsedInstructions(bool found_value, bool expected_value) {
 
   if (found_value != expected_value)
-    throw std::runtime_error("Incorrect instruction used value - found: " +
-                             std::string(found_value ? "true" : "false") + " | expected: " +
-                             std::string(expected_value ? "true" : "false"));
+    throw std::runtime_error(
+        "Incorrect instruction used value - found: " + std::string(found_value ? "true" : "false") +
+        " | expected: " + std::string(expected_value ? "true" : "false"));
 }
 
 void TryGetWordCount(const NavigatorTest& nav,
@@ -834,8 +830,8 @@ void TryGetWordCount(const NavigatorTest& nav,
 
   if (found_word_count != expected_word_count)
     throw std::runtime_error("Incorrect word count for the instruction=\"" + instruction +
-                             "\" - found: " + std::to_string(found_word_count) + " | expected: " +
-                             std::to_string(expected_word_count));
+                             "\" - found: " + std::to_string(found_word_count) +
+                             " | expected: " + std::to_string(expected_word_count));
 }
 
 void TestGetWordCount(const NavigatorTest& nav) {
@@ -933,8 +929,7 @@ void TestGetWordCount(const NavigatorTest& nav) {
   /////////////////////////////////////////////////////////////////////////////
   // German
   // "Take the A 9 ramp on the right toward Stuttgart, Nürnberg."
-  instruction =
-      "Über die Auffahrt leicht nach rechts auf A 9 abbiegen Richtung Stuttgart, Nürnberg.";
+  instruction = "Über die Auffahrt leicht nach rechts auf A 9 abbiegen Richtung Stuttgart, Nürnberg.";
   TryGetWordCount(nav, instruction, 13);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -5281,8 +5276,7 @@ void TestAutoLancasterToHershey() {
   bool expected_on_route_location_close_to_origin = true;
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // Start maneuver at beginning of route
   // trace_pt[0] | segment index 0 | begin of maneuver index 0
@@ -5293,15 +5287,13 @@ void TestAutoLancasterToHershey() {
                             expected_on_route_location_close_to_origin);
 
   // kPreTransition instruction should be used after OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // reset the route
   nav.SetRoute(route_json_str);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // Start maneuver near beginning of route
   // trace_pt[1] | segment index 0 | near begin of maneuver index 0
@@ -5312,8 +5304,7 @@ void TestAutoLancasterToHershey() {
                             expected_on_route_location_close_to_origin);
 
   // kPreTransition instruction should be used after OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // reset the route
   nav.SetRoute(route_json_str);
@@ -5326,20 +5317,18 @@ void TestAutoLancasterToHershey() {
   TryGetPreTransitionThreshold(nav, leg_index, instruction_index, 8);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // No kPreTransition because not within time threshold for pre transition
   // trace_pt[2] | segment index 0 | near begin of maneuver index 0 | maneuver speed ~ 18.7714 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.298897f, 40.042610f, 3),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.298889f,
-                                                40.042545f, leg_index, 31.3077f, 2420,
-                                                maneuver_index, 0.058027f, 11));
+                                                40.042545f, leg_index, 31.3077f, 2420, maneuver_index,
+                                                0.058027f, 11));
 
   // kPreTransition instruction should be not used after OnLocationChanged
   // because not within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[5] | segment index 1 | near middle of maneuver index 0 | fix speed ~ 20 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.298477f, 40.042645f, 6, 8.94f),
@@ -5349,8 +5338,7 @@ void TestAutoLancasterToHershey() {
 
   // kPreTransition instruction should be used after OnLocationChanged
   // because it was within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 1;
@@ -5365,8 +5353,7 @@ void TestAutoLancasterToHershey() {
   TryGetPreTransitionThreshold(nav, leg_index, instruction_index, 8);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[13] | segment index 2 | near middle of maneuver index 1 | fix speed >~ 10 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.297745f, 40.042370f, 20, 5.0f),
@@ -5376,8 +5363,7 @@ void TestAutoLancasterToHershey() {
 
   // kPreTransition instruction should be used after OnLocationChanged
   // because it was within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 2;
@@ -5408,8 +5394,7 @@ void TestAutoLancasterToHershey() {
 
   // kPostTransition instruction should be used after OnLocationChanged
   // because it was outside of the time threshold for post-transition
-  TryUsedInstructions(std::get<kPostTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPostTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // Increment instruction_index for testing instructions prior to next maneuver
   ++instruction_index;
@@ -5419,8 +5404,7 @@ void TestAutoLancasterToHershey() {
   TryGetPreTransitionThreshold(nav, leg_index, instruction_index, 10);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[186] | segment index 87 | near end of maneuver index 2 | fix speed ~ 45 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.268127f, 40.054886f, 262, 20.12f),
@@ -5430,8 +5414,7 @@ void TestAutoLancasterToHershey() {
 
   // kPreTransition instruction should be used after OnLocationChanged
   // because it was within time threshold for pre-transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 3;
@@ -5454,8 +5437,9 @@ void TestAutoLancasterToHershey() {
   ++instruction_index;
 
   // kInitialTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kInitialTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kInitialTransitionAlert>(
+                          nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[332] | segment index 30 | 1 mile before end of maneuver index 4 | maneuver speed
   // ~ 60.3 MPH
@@ -5467,12 +5451,13 @@ void TestAutoLancasterToHershey() {
 
   // kInitialTransitionAlert instruction should be used after OnLocationChanged
   // because it was within length bounds for initial transition alert
-  TryUsedInstructions(
-      std::get<kInitialTransitionAlert>(nav.used_instructions().at(instruction_index)), true);
+  TryUsedInstructions(std::get<kInitialTransitionAlert>(
+                          nav.used_instructions().at(instruction_index)),
+                      true);
 
   // kFinalTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[373] | segment index 34 | 1/4 mile before end of maneuver index 4 | maneuver speed
   // ~ 60.3 MPH
@@ -5484,8 +5469,8 @@ void TestAutoLancasterToHershey() {
 
   // kFinalTransitionAlert instruction should be used after OnLocationChanged
   // because it was within length bounds for final transition alert
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), true);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      true);
 
   // Test GetPreTransitionThreshold
   // "Keep left to take Pennsylvania 2 83 West toward Harrisburg."
@@ -5500,8 +5485,9 @@ void TestAutoLancasterToHershey() {
   ++instruction_index;
 
   // kInitialTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kInitialTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kInitialTransitionAlert>(
+                          nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[1139] | segment index 73 | 2 miles before end of maneuver index 5 | fix speed ~ 72 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.567604f, 40.152584f, 1301, 32.19f),
@@ -5512,12 +5498,13 @@ void TestAutoLancasterToHershey() {
 
   // kInitialTransitionAlert instruction should be used after OnLocationChanged
   // because it was within length bounds for initial transition alert
-  TryUsedInstructions(
-      std::get<kInitialTransitionAlert>(nav.used_instructions().at(instruction_index)), true);
+  TryUsedInstructions(std::get<kInitialTransitionAlert>(
+                          nav.used_instructions().at(instruction_index)),
+                      true);
 
   // kFinalTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[1220] | segment index 73 | 1/2 mile before end of maneuver index 5 | fix speed ~ 72
   // MPH
@@ -5529,8 +5516,8 @@ void TestAutoLancasterToHershey() {
 
   // kFinalTransitionAlert instruction should be used after OnLocationChanged
   // because it was within length bounds for final transition alert
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), true);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      true);
 
   // Test GetPreTransitionThreshold
   // "Take the Pennsylvania 7 43 exit on the right toward Hershey."
@@ -6621,11 +6608,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 124 | Alert | In 1 mile Turn left to take the U.S. 30 West ramp.
   maneuver_index = 2;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.2801208f, 40.0468292f, 1491514868, 22.9399128),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.2801285f, 40.046833f,
-                          leg_index, 30.1678772f, 2269, maneuver_index, 1.01971626f, 105,
-                          instruction_index, kInitialShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.2801208f, 40.0468292f, 1491514868, 22.9399128),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.2801285f, 40.046833f, leg_index, 30.1678772f,
+                                                2269, maneuver_index, 1.01971626f, 105,
+                                                instruction_index,
+                                                kInitialShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 125
   maneuver_index = 2;
@@ -7030,11 +7018,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 175 | Alert | In a quarter mile Turn left to take the U.S. 30 West ramp.
   maneuver_index = 2;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.2709961f, 40.0539093f, 1491514919, 25.754179),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.2709885f, 40.053894f,
-                          leg_index, 29.4239464f, 2192, maneuver_index, 0.275785446f, 28,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.2709961f, 40.0539093f, 1491514919, 25.754179),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.2709885f, 40.053894f, leg_index, 29.4239464f,
+                                                2192, maneuver_index, 0.275785446f, 28,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 176
   maneuver_index = 2;
@@ -8283,11 +8272,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 331 | Alert | In 1 mile Keep left to take Pennsylvania 2 83 West.
   maneuver_index = 4;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.2994919f, 40.0680542f, 1491515076, 30.6643696),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.2994843f, 40.0680923f,
-                          leg_index, 27.0490875f, 2024, maneuver_index, 1.02269363f, 61,
-                          instruction_index, kInitialShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.2994919f, 40.0680542f, 1491515076, 30.6643696),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.2994843f, 40.0680923f, leg_index, 27.0490875f,
+                                                2024, maneuver_index, 1.02269363f, 61,
+                                                instruction_index,
+                                                kInitialShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 332
   maneuver_index = 4;
@@ -8500,11 +8490,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 358 | Alert | In a half mile Keep left to take Pennsylvania 2 83 West.
   maneuver_index = 4;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.3086548f, 40.0692406f, 1491515103, 28.7426262),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.3086472f, 40.0692825f,
-                          leg_index, 26.5568733f, 1994, maneuver_index, 0.530479431f, 31,
-                          instruction_index, kFinalLongTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.3086548f, 40.0692406f, 1491515103, 28.7426262),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.3086472f, 40.0692825f, leg_index, 26.5568733f,
+                                                1994, maneuver_index, 0.530479431f, 31,
+                                                instruction_index,
+                                                kFinalLongTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 359
   maneuver_index = 4;
@@ -14751,11 +14742,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 1139 | Alert | In 2 miles Take the Pennsylvania 7 43 exit on the right.
   maneuver_index = 5;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.5676041f, 40.1525841f, 1491515884, 30.8117695),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.5676193f, 40.1525688f,
-                          leg_index, 11.2084436f, 1122, maneuver_index, 2.02614307f, 115,
-                          instruction_index, kInitialLongTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.5676041f, 40.1525841f, 1491515884, 30.8117695),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.5676193f, 40.1525688f, leg_index, 11.2084436f,
+                                                1122, maneuver_index, 2.02614307f, 115,
+                                                instruction_index,
+                                                kInitialLongTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1140
   maneuver_index = 5;
@@ -15400,11 +15392,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 1220 | Alert | In a half mile Take the Pennsylvania 7 43 exit on the right.
   maneuver_index = 5;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.5877991f, 40.1681671f, 1491515965, 28.1443062),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.5878143f, 40.1681595f,
-                          leg_index, 9.69095802f, 1036, maneuver_index, 0.508657455f, 29,
-                          instruction_index, kFinalLongTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.5877991f, 40.1681671f, 1491515965, 28.1443062),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.5878143f, 40.1681595f, leg_index, 9.69095802f,
+                                                1036, maneuver_index, 0.508657455f, 29,
+                                                instruction_index,
+                                                kFinalLongTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1221
   maneuver_index = 5;
@@ -15935,8 +15928,7 @@ void TestAutoLancasterToHershey() {
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6003036f, 40.17873f, 1491516031, 10.7237387),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
                                                 -76.6003113f, 40.17873f, leg_index, 8.7020731f, 975,
-                                                maneuver_index, 0.0553750992f, 2,
-                                                instruction_index));
+                                                maneuver_index, 0.0553750992f, 2, instruction_index));
   //----------------------------------------------------------------
   // trace point = 1287
   maneuver_index = 7;
@@ -17279,8 +17271,8 @@ void TestAutoLancasterToHershey() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6130905f, 40.2075233f, 1491516203, 20.8485527),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.612999f,
-                                                40.20755f, leg_index, 6.5722847f, 751,
-                                                maneuver_index, 2.81093025f, 299));
+                                                40.20755f, leg_index, 6.5722847f, 751, maneuver_index,
+                                                2.81093025f, 299));
   //----------------------------------------------------------------
   // trace point = 1455
   maneuver_index = 8;
@@ -17343,8 +17335,8 @@ void TestAutoLancasterToHershey() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6136169f, 40.2089882f, 1491516211, 21.3062019),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.6136017f,
-                                                40.208992f, leg_index, 6.467484f, 740,
-                                                maneuver_index, 2.70612955f, 288));
+                                                40.208992f, leg_index, 6.467484f, 740, maneuver_index,
+                                                2.70612955f, 288));
   //----------------------------------------------------------------
   // trace point = 1463
   maneuver_index = 8;
@@ -18909,11 +18901,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 1658 | Alert | In a quarter mile Continue on Fishburn Road.
   maneuver_index = 8;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.6255646f, 40.2425499f, 1491516431, 26.3894234),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.6255569f, 40.2425499f,
-                          leg_index, 4.03404236f, 481, maneuver_index, 0.272687912f, 29,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.6255646f, 40.2425499f, 1491516431, 26.3894234),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.6255569f, 40.2425499f, leg_index, 4.03404236f,
+                                                481, maneuver_index, 0.272687912f, 29,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1659
   maneuver_index = 8;
@@ -20409,8 +20402,8 @@ void TestAutoLancasterToHershey() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6488113f, 40.2680702f, 1491516618, 16.8183327),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.648819f,
-                                                40.2680626f, leg_index, 1.75878f, 248,
-                                                maneuver_index, 0.522625327f, 55));
+                                                40.2680626f, leg_index, 1.75878f, 248, maneuver_index,
+                                                0.522625327f, 55));
   //----------------------------------------------------------------
   // trace point = 1846
   maneuver_index = 9;
@@ -20615,11 +20608,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 1871 | Alert | In a quarter mile Bear left onto Hockersville Road.
   maneuver_index = 9;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.6525192f, 40.2701302f, 1491516644, 15.9411068),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.6525269f, 40.2701225f,
-                          leg_index, 1.51669967f, 223, maneuver_index, 0.280544996f, 30,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.6525192f, 40.2701302f, 1491516644, 15.9411068),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.6525269f, 40.2701225f, leg_index, 1.51669967f,
+                                                223, maneuver_index, 0.280544996f, 30,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1872
   maneuver_index = 9;
@@ -21146,11 +21140,12 @@ void TestAutoLancasterToHershey() {
   // trace point = 1937 | Alert | In a quarter mile Turn right onto U.S. 4 22.
   maneuver_index = 10;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.6603088f, 40.2758408f, 1491516748, 16.6880398),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.6603394f, 40.2758141f,
-                          leg_index, 0.936038792f, 145, maneuver_index, 0.272264779f, 43,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.6603088f, 40.2758408f, 1491516748, 16.6880398),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.6603394f, 40.2758141f, leg_index, 0.936038792f,
+                                                145, maneuver_index, 0.272264779f, 43,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1938
   maneuver_index = 10;
@@ -21709,11 +21704,11 @@ void TestAutoLancasterToHershey() {
   // trace point = 2007 | Alert | In a quarter mile You will arrive at your destination.
   maneuver_index = 11;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.6592712f, 40.2821884f, 1491516821, 15.9540434),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.6592865f, 40.2822075f,
-                          leg_index, 0.2733576f, 41, maneuver_index, 0.2733576f, 41,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.6592712f, 40.2821884f, 1491516821, 15.9540434),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.6592865f, 40.2822075f, leg_index, 0.2733576f, 41,
+                                                maneuver_index, 0.2733576f, 41, instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 2008
   maneuver_index = 11;
@@ -23842,11 +23837,9 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   // Test the final short transition alert methods for metric values
   TryLength("GetFinalShortTransitionAlertLength", nav.GetFinalShortTransitionAlertLength(),
             kFinalShortTransitionAlertMetricLength);
-  TryLength("GetFinalShortTransitionAlertLowerLength",
-            nav.GetFinalShortTransitionAlertLowerLength(),
+  TryLength("GetFinalShortTransitionAlertLowerLength", nav.GetFinalShortTransitionAlertLowerLength(),
             kFinalShortTransitionAlertLowerMetricLength);
-  TryLength("GetFinalShortTransitionAlertUpperLength",
-            nav.GetFinalShortTransitionAlertUpperLength(),
+  TryLength("GetFinalShortTransitionAlertUpperLength", nav.GetFinalShortTransitionAlertUpperLength(),
             kFinalShortTransitionAlertUpperMetricLength);
 
   ////////////////////////////////////////////////////////////////////////////
@@ -24466,8 +24459,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.7088318f, 40.2576408f, 1489614861, 8.18165302),
                             GetNavigationStatus(NavigationStatus_RouteState_kPostTransition,
-                                                -76.7088318f, 40.257679f, leg_index, 14.0538855f,
-                                                883, maneuver_index, 0.791744232f, 43));
+                                                -76.7088318f, 40.257679f, leg_index, 14.0538855f, 883,
+                                                maneuver_index, 0.791744232f, 43));
   //----------------------------------------------------------------
   // trace point = 76
   maneuver_index = 1;
@@ -24707,9 +24700,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.7016525f, 40.2581596f, 1489614892, 21.6005001),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
-                                                -76.7016525f, 40.2581596f, leg_index, 13.44065f,
-                                                850, maneuver_index, 0.178508759f, 10,
-                                                instruction_index));
+                                                -76.7016525f, 40.2581596f, leg_index, 13.44065f, 850,
+                                                maneuver_index, 0.178508759f, 10, instruction_index));
   //----------------------------------------------------------------
   // trace point = 106
   maneuver_index = 1;
@@ -26039,8 +26031,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6653442f, 40.2700577f, 1489615109, 15.3962479),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.6653671f,
-                                                40.270092f, leg_index, 9.992836f, 658,
-                                                maneuver_index, 2.7899766f, 158));
+                                                40.270092f, leg_index, 9.992836f, 658, maneuver_index,
+                                                2.7899766f, 158));
   //----------------------------------------------------------------
   // trace point = 272
   maneuver_index = 5;
@@ -27295,9 +27287,9 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6388092f, 40.2752686f, 1489615361, 15.5905199),
                             GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
-                                                -76.6388092f, 40.27528f, leg_index, 7.63957834f,
-                                                524, maneuver_index, 0.436718941f, 24,
-                                                instruction_index, 0.4f));
+                                                -76.6388092f, 40.27528f, leg_index, 7.63957834f, 524,
+                                                maneuver_index, 0.436718941f, 24, instruction_index,
+                                                0.4f));
   //----------------------------------------------------------------
   // trace point = 429
   maneuver_index = 5;
@@ -27505,9 +27497,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6337051f, 40.2749138f, 1489615389, 8.13665581),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
-                                                -76.633728f, 40.2748871f, leg_index, 7.2028594f,
-                                                500, maneuver_index, 0.0267596245f, 0,
-                                                instruction_index));
+                                                -76.633728f, 40.2748871f, leg_index, 7.2028594f, 500,
+                                                maneuver_index, 0.0267596245f, 0, instruction_index));
   //----------------------------------------------------------------
   // trace point = 455
   maneuver_index = 6;
@@ -27763,9 +27754,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6272964f, 40.2745323f, 1489615424, 18.9388065),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
-                                                -76.6272964f, 40.2745247f, leg_index, 6.651196f,
-                                                475, maneuver_index, 0.131089687f, 5,
-                                                instruction_index));
+                                                -76.6272964f, 40.2745247f, leg_index, 6.651196f, 475,
+                                                maneuver_index, 0.131089687f, 5, instruction_index));
   //----------------------------------------------------------------
   // trace point = 487
   maneuver_index = 7;
@@ -27836,9 +27826,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.6256561f, 40.2745323f, 1489615435, 7.99918222),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
-                                                -76.6256943f, 40.274498f, leg_index, 6.50940084f,
-                                                469, maneuver_index, 0.0304069519f, 1,
-                                                instruction_index));
+                                                -76.6256943f, 40.274498f, leg_index, 6.50940084f, 469,
+                                                maneuver_index, 0.0304069519f, 1, instruction_index));
   //----------------------------------------------------------------
   // trace point = 496
   maneuver_index = 8;
@@ -30288,11 +30277,11 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   // trace point = 801 | Alert In 150 meters | Enter the roundabout and take the 1st exit.
   maneuver_index = 11;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.5729523f, 40.2830505f, 1489615771, 1.57272398),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.5729523f, 40.2830505f,
-                          leg_index, 1.6426698f, 164, maneuver_index, 0.153226972f, 21,
-                          instruction_index, kFinalShortTransitionAlertMetricLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.5729523f, 40.2830505f, 1489615771, 1.57272398),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.5729523f, 40.2830505f, leg_index, 1.6426698f, 164,
+                                                maneuver_index, 0.153226972f, 21, instruction_index,
+                                                kFinalShortTransitionAlertMetricLength));
   //----------------------------------------------------------------
   // trace point = 802
   maneuver_index = 11;
@@ -30388,8 +30377,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.5732498f, 40.2844009f, 1489615788, 5.76822281),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.5732651f,
-                                                40.28442f, leg_index, 1.482898f, 142,
-                                                maneuver_index, 0.0544025898f, 7));
+                                                40.28442f, leg_index, 1.482898f, 142, maneuver_index,
+                                                0.0544025898f, 7));
   //----------------------------------------------------------------
   // trace point = 814 | Pre | Exit the roundabout onto South Forge Road, Pennsylvania 1 17.
   maneuver_index = 12;
@@ -30429,9 +30418,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.5734634f, 40.2849388f, 1489615799, 7.17445612),
                             GetNavigationStatus(NavigationStatus_RouteState_kPostTransition,
-                                                -76.573494f, 40.284935f, leg_index, 1.40678549f,
-                                                134, maneuver_index, 0.418650925f, 27,
-                                                instruction_index));
+                                                -76.573494f, 40.284935f, leg_index, 1.40678549f, 134,
+                                                maneuver_index, 0.418650925f, 27, instruction_index));
   //----------------------------------------------------------------
   // trace point = 819
   maneuver_index = 13;
@@ -30689,8 +30677,7 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.574234f, 40.2886505f, 1489615848, 6.90376806),
                             GetNavigationStatus(NavigationStatus_RouteState_kPostTransition,
                                                 -76.574234f, 40.288662f, leg_index, 0.9609164f, 103,
-                                                maneuver_index, 0.289648414f, 37,
-                                                instruction_index));
+                                                maneuver_index, 0.289648414f, 37, instruction_index));
   //----------------------------------------------------------------
   // trace point = 851
   maneuver_index = 14;
@@ -31004,8 +30991,8 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.5693665f, 40.2889175f, 1489615892, 13.1382093),
                             GetNavigationStatus(NavigationStatus_RouteState_kTracking, -76.5693588f,
-                                                40.288929f, leg_index, 0.4390212f, 44,
-                                                maneuver_index, 0.267264307f, 26));
+                                                40.288929f, leg_index, 0.4390212f, 44, maneuver_index,
+                                                0.267264307f, 26));
   //----------------------------------------------------------------
   // trace point = 890
   maneuver_index = 15;
@@ -31172,11 +31159,12 @@ void TestAutoMiddletownRoadToLandingsDrive() {
   // trace point = 910 | Alert In 150 meters | You will arrive at your destination.
   maneuver_index = 16;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.5667801f, 40.2875519f, 1489615920, 2.49626994),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.5667648f, 40.2875481f,
-                          leg_index, 0.161372095f, 17, maneuver_index, 0.161372095f, 17,
-                          instruction_index, kFinalShortTransitionAlertMetricLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.5667801f, 40.2875519f, 1489615920, 2.49626994),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.5667648f, 40.2875481f, leg_index, 0.161372095f,
+                                                17, maneuver_index, 0.161372095f, 17,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertMetricLength));
   //----------------------------------------------------------------
   // trace point = 911
   maneuver_index = 16;
@@ -31799,11 +31787,12 @@ void TestAutoLancasterVerbalMultiCue() {
   // trace point = 33 | Alert 500 feet | Turn left onto North Marshall Street.
   maneuver_index = 1;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.2959061f, 40.0422363f, 1510692494, 11.9961939),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.2958984f, 40.0421982f,
-                          leg_index, 0.711615145f, 182, maneuver_index, 0.11314106f, 31,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.2959061f, 40.0422363f, 1510692494, 11.9961939),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.2958984f, 40.0421982f, leg_index, 0.711615145f,
+                                                182, maneuver_index, 0.11314106f, 31,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 34
   maneuver_index = 1;
@@ -31963,11 +31952,12 @@ void TestAutoLancasterVerbalMultiCue() {
   // trace point = 53 | Alert In 500 feet | Turn left onto North Franklin Street.
   maneuver_index = 3;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.2937393f, 40.043129f, 1510692521, 4.54608583),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.2937317f, 40.0431023f,
-                          leg_index, 0.544485569f, 141, maneuver_index, 0.0946180224f, 19,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.2937393f, 40.043129f, 1510692521, 4.54608583),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.2937317f, 40.0431023f, leg_index, 0.544485569f,
+                                                141, maneuver_index, 0.0946180224f, 19,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 54
   maneuver_index = 3;
@@ -32320,11 +32310,12 @@ void TestAutoLancasterVerbalMultiCue() {
   // trace point = 97 | Alert 500 feet | Turn left onto North Plum Street.
   maneuver_index = 5;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.2958984f, 40.0437813f, 1510692575, 14.0628624),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.2958984f, 40.0437889f,
-                          leg_index, 0.185721666f, 54, maneuver_index, 0.11109408f, 25,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.2958984f, 40.0437813f, 1510692575, 14.0628624),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.2958984f, 40.0437889f, leg_index, 0.185721666f,
+                                                54, maneuver_index, 0.11109408f, 25,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 98
   maneuver_index = 5;
@@ -32755,8 +32746,7 @@ void TestPedestrianCatalinasToOffice() {
   nav.SetRoute(route_json_str);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // Start maneuver at beginning of route
   // trace_pt[0] | begin of maneuver index 0
@@ -32768,15 +32758,13 @@ void TestPedestrianCatalinasToOffice() {
                             expected_on_route_location_close_to_origin);
 
   // kPreTransition instruction should be used after OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // reset the route
   nav.SetRoute(route_json_str);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // Start maneuver near beginning of route
   // trace_pt[1] | near begin of maneuver index 0
@@ -32788,8 +32776,7 @@ void TestPedestrianCatalinasToOffice() {
                             expected_on_route_location_close_to_origin);
 
   // kPreTransition instruction should be used after OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // reset the route
   nav.SetRoute(route_json_str);
@@ -32798,8 +32785,7 @@ void TestPedestrianCatalinasToOffice() {
   ++instruction_index;
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // No kPreTransition because not within time threshold for pre transition
   // trace_pt[3] | near begin of maneuver index 0 | maneuver speed ~ 3.1787231 MPH
@@ -32811,8 +32797,7 @@ void TestPedestrianCatalinasToOffice() {
 
   // kPreTransition instruction should be not used after OnLocationChanged
   // because not within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[12] | near end of maneuver index 0 | fix speed ~ 5.5 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.30629f, 40.0396659f, 78, 2.5f),
@@ -32822,8 +32807,7 @@ void TestPedestrianCatalinasToOffice() {
 
   // kPreTransition instruction should not be used after OnLocationChanged
   // because it is not within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[13] | near end of maneuver index 0 | fix speed ~ 5.5 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.306168f, 40.039639f, 85, 2.5f),
@@ -32834,8 +32818,7 @@ void TestPedestrianCatalinasToOffice() {
 
   // kPreTransition instruction should be used after OnLocationChanged
   // because it was within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 1;
@@ -32846,8 +32829,7 @@ void TestPedestrianCatalinasToOffice() {
   ++instruction_index;
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[31] | end of maneuver index 1 | fix speed ~ 2.2 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.306259f, 40.041019f, 212, 1.5f),
@@ -32858,8 +32840,7 @@ void TestPedestrianCatalinasToOffice() {
 
   // kPreTransition instruction should be used after OnLocationChanged
   // because it was within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 2;
@@ -32891,15 +32872,14 @@ void TestPedestrianCatalinasToOffice() {
 
   // kPostTransition instruction should be used after OnLocationChanged
   // because it was within the time threshold for post-transition
-  TryUsedInstructions(std::get<kPostTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPostTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // Increment instruction_index for testing instructions prior to next maneuver
   ++instruction_index;
 
   // kFinalTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[49]  | 500 feet before end of maneuver index 3 | maneuver speed ~ 3.16503859 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.301743f, 40.041588f, 496),
@@ -32910,8 +32890,8 @@ void TestPedestrianCatalinasToOffice() {
 
   // kFinalTransitionAlert instruction should be used after OnLocationChanged
   // because it was within length bounds for final transition alert
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), true);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      true);
 }
 
 /* RoadBikeLunchRideLoop geojson to visualize test route
@@ -35418,8 +35398,7 @@ void TestRoadBikeLunchRideLoop() {
   nav.SetRoute(route_json_str);
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // Start maneuver at beginning of route
   // trace_pt[0] | begin of maneuver index 0
@@ -35431,8 +35410,7 @@ void TestRoadBikeLunchRideLoop() {
                             expected_on_route_location_close_to_origin);
 
   // kPreTransition instruction should be used after OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   // reset the route
   nav.SetRoute(route_json_str);
@@ -35441,8 +35419,7 @@ void TestRoadBikeLunchRideLoop() {
   ++instruction_index;
 
   // kPreTransition instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // No kPreTransition because not within time threshold for pre transition
   // trace_pt[1] | near begin of maneuver index 0 | maneuver speed ~ 14.312582 MPH
@@ -35454,12 +35431,12 @@ void TestRoadBikeLunchRideLoop() {
 
   // kPreTransition instruction should be not used after OnLocationChanged
   // because not within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // kInitialTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kInitialTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kInitialTransitionAlert>(
+                          nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[179]  | 1 mile before end of maneuver index 0 | maneuver speed ~ 14.312582 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.092705f, 39.672829f, 652),
@@ -35469,12 +35446,13 @@ void TestRoadBikeLunchRideLoop() {
 
   // kInitialTransitionAlert instruction should not be used after OnLocationChanged
   // because the speed was not high enough for an initial transition alert.
-  TryUsedInstructions(
-      std::get<kInitialTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kInitialTransitionAlert>(
+                          nav.used_instructions().at(instruction_index)),
+                      false);
 
   // kFinalTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      false);
 
   // TODO: Reconsider speed bounds for transition alerts. Must be going over 62 MPH for long final
   // transition
@@ -35487,8 +35465,8 @@ void TestRoadBikeLunchRideLoop() {
 
   // kFinalTransitionAlert instruction should not be used after OnLocationChanged
   // because the speed was not high enough for a final transition alert.
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      false);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 2;
@@ -35499,8 +35477,8 @@ void TestRoadBikeLunchRideLoop() {
   ++instruction_index;
 
   // kFinalTransitionAlert instruction should not be used prior to OnLocationChanged
-  TryUsedInstructions(
-      std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)), false);
+  TryUsedInstructions(std::get<kFinalTransitionAlert>(nav.used_instructions().at(instruction_index)),
+                      false);
 
   // trace_pt[304] | near end of maneuver index 2 | fix speed >~ 15 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.045883f, 39.689846f, 1458, 6.75f),
@@ -35510,8 +35488,7 @@ void TestRoadBikeLunchRideLoop() {
 
   // kPreTransition instruction should not be used after OnLocationChanged
   // because it is not within the time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      false);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), false);
 
   // trace_pt[305] | near end of maneuver index 2 | fix speed >~ 15 MPH
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.045692f, 39.690193f, 1465, 6.75f),
@@ -35522,8 +35499,7 @@ void TestRoadBikeLunchRideLoop() {
 
   // kPreTransition instruction should be used after OnLocationChanged
   // because it was within time threshold for pre transition
-  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPreTransition>(nav.used_instructions().at(instruction_index)), true);
 
   ////////////////////////////////////////////////////////////////////////////
   maneuver_index = 3;
@@ -35543,8 +35519,7 @@ void TestRoadBikeLunchRideLoop() {
 
   // kPostTransition instruction should be used after OnLocationChanged
   // because it was within the time threshold for post-transition
-  TryUsedInstructions(std::get<kPostTransition>(nav.used_instructions().at(instruction_index)),
-                      true);
+  TryUsedInstructions(std::get<kPostTransition>(nav.used_instructions().at(instruction_index)), true);
 
   //----------------------------------------------------------------
   // reset the route
@@ -37260,11 +37235,11 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 213 | Alert | In 500 feet Continue on Barnes Corner Road.
   maneuver_index = 0;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.075592f, 39.6742821f, 1483288356, 6.12365103),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.075592f, 39.6742897f,
-                          leg_index, 23.55723f, 5507, maneuver_index, 0.097492218f, 24,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.075592f, 39.6742821f, 1483288356, 6.12365103),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.075592f, 39.6742897f, leg_index, 23.55723f, 5507,
+                                                maneuver_index, 0.097492218f, 24, instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 214
   maneuver_index = 0;
@@ -37678,11 +37653,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 265 | Alert | In 500 feet Turn left onto Montgomery Road.
   maneuver_index = 1;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.049942f, 39.6773682f, 1483288649, 7.71978521),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.049942f, 39.6773758f,
-                          leg_index, 22.1646252f, 5169, maneuver_index, 0.103404999f, 25,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.049942f, 39.6773682f, 1483288649, 7.71978521),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.049942f, 39.6773758f, leg_index, 22.1646252f,
+                                                5169, maneuver_index, 0.103404999f, 25,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 266
   maneuver_index = 1;
@@ -37977,11 +37953,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 302 | Alert | In 500 feet Turn right onto Biggs Highway.
   maneuver_index = 2;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0463409f, 39.6889992f, 1483288905, 5.90033007),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0463791f, 39.6890106f,
-                          leg_index, 21.2216473f, 4945, maneuver_index, 0.101165771f, 25,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0463409f, 39.6889992f, 1483288905, 5.90033007),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0463791f, 39.6890106f, leg_index, 21.2216473f,
+                                                4945, maneuver_index, 0.101165771f, 25,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 303
   maneuver_index = 2;
@@ -38092,11 +38069,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 316 | Alert | In 500 feet Turn left onto Wilson Road.
   maneuver_index = 3;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0404205f, 39.6888542f, 1483289008, 7.23788404),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0404053f, 39.6888657f,
-                          leg_index, 20.8157864f, 4850, maneuver_index, 0.0943489075f, 23,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0404205f, 39.6888542f, 1483289008, 7.23788404),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0404053f, 39.6888657f, leg_index, 20.8157864f,
+                                                4850, maneuver_index, 0.0943489075f, 23,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 317
   maneuver_index = 3;
@@ -39335,11 +39313,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 471 | Alert | In 500 feet Continue on Stoney Lane.
   maneuver_index = 4;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.01297f, 39.7206535f, 1483289862, 6.05835104),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0130157f, 39.7206497f,
-                          leg_index, 17.3584137f, 4048, maneuver_index, 0.0807800293f, 19,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.01297f, 39.7206535f, 1483289862, 6.05835104),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0130157f, 39.7206497f, leg_index, 17.3584137f,
+                                                4048, maneuver_index, 0.0807800293f, 19,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 472
   maneuver_index = 4;
@@ -40017,11 +39996,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 556 | Alert | In 500 feet Turn right onto East Christine Road.
   maneuver_index = 5;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0132446f, 39.7451515f, 1483290354, 3.216748),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0132446f, 39.7451515f,
-                          leg_index, 15.5957308f, 3600, maneuver_index, 0.115643501f, 29,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0132446f, 39.7451515f, 1483290354, 3.216748),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0132446f, 39.7451515f, leg_index, 15.5957308f,
+                                                3600, maneuver_index, 0.115643501f, 29,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 557
   maneuver_index = 5;
@@ -40419,11 +40399,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 606 | Alert | In a quarter mile Turn right onto McCoury Road.
   maneuver_index = 6;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-75.9934921f, 39.7366295f, 1483290597, 10.6873226),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -75.9934845f, 39.7366333f,
-                          leg_index, 14.2667418f, 3300, maneuver_index, 0.278489113f, 63,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-75.9934921f, 39.7366295f, 1483290597, 10.6873226),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -75.9934845f, 39.7366333f, leg_index, 14.2667418f,
+                                                3300, maneuver_index, 0.278489113f, 63,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 607
   maneuver_index = 6;
@@ -40910,11 +40891,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 667 | Alert | In a quarter mile Continue on Chandlee Road.
   maneuver_index = 7;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-75.9965897f, 39.7257957f, 1483290829, 13.1170454),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -75.9965591f, 39.7257996f,
-                          leg_index, 13.1268396f, 3065, maneuver_index, 0.280430794f, 57,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-75.9965897f, 39.7257957f, 1483290829, 13.1170454),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -75.9965591f, 39.7257996f, leg_index, 13.1268396f,
+                                                3065, maneuver_index, 0.280430794f, 57,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 668
   maneuver_index = 7;
@@ -40993,9 +40975,8 @@ void TestRoadBikeLunchRideLoop() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-75.9961853f, 39.7221794f, 1483290868, 7.77838278),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
-                                                -75.99617f, 39.7221794f, leg_index, 12.8755054f,
-                                                3014, maneuver_index, 0.0290966034f, 6,
-                                                instruction_index));
+                                                -75.99617f, 39.7221794f, leg_index, 12.8755054f, 3014,
+                                                maneuver_index, 0.0290966034f, 6, instruction_index));
   //----------------------------------------------------------------
   // trace point = 678
   maneuver_index = 8;
@@ -41328,11 +41309,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 719 | Alert | In a quarter mile Bear left onto Thankless Lane.
   maneuver_index = 8;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-75.9951706f, 39.7072182f, 1483291077, 11.2770166),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -75.9951706f, 39.7072182f,
-                          leg_index, 11.8388395f, 2768, maneuver_index, 0.242791176f, 56,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-75.9951706f, 39.7072182f, 1483291077, 11.2770166),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -75.9951706f, 39.7072182f, leg_index, 11.8388395f,
+                                                2768, maneuver_index, 0.242791176f, 56,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 720
   maneuver_index = 8;
@@ -41594,11 +41576,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 752 | Alert | In a quarter mile Turn right onto Calvert Road.
   maneuver_index = 9;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-75.9949646f, 39.6981544f, 1483291213, 11.5311937),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -75.994957f, 39.6981544f,
-                          leg_index, 11.2095642f, 2616, maneuver_index, 0.270292282f, 68,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-75.9949646f, 39.6981544f, 1483291213, 11.5311937),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -75.994957f, 39.6981544f, leg_index, 11.2095642f,
+                                                2616, maneuver_index, 0.270292282f, 68,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 753
   maneuver_index = 9;
@@ -41740,11 +41723,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 770 | Alert | In 500 feet Turn left onto England Creamery Road.
   maneuver_index = 10;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-75.9963989f, 39.693615f, 1483291307, 6.96624613),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -75.9963913f, 39.6936073f,
-                          leg_index, 10.8291578f, 2522, maneuver_index, 0.108248711f, 25,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-75.9963989f, 39.693615f, 1483291307, 6.96624613),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -75.9963913f, 39.6936073f, leg_index, 10.8291578f,
+                                                2522, maneuver_index, 0.108248711f, 25,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 771
   maneuver_index = 10;
@@ -41792,9 +41776,8 @@ void TestRoadBikeLunchRideLoop() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-75.9982452f, 39.6927299f, 1483291334, 7.07221413),
                             GetNavigationStatus(NavigationStatus_RouteState_kPostTransition,
-                                                -75.99823f, 39.6927299f, leg_index, 10.7016888f,
-                                                2492, maneuver_index, 1.41049385f, 332,
-                                                instruction_index));
+                                                -75.99823f, 39.6927299f, leg_index, 10.7016888f, 2492,
+                                                maneuver_index, 1.41049385f, 332, instruction_index));
   //----------------------------------------------------------------
   // trace point = 777
   maneuver_index = 11;
@@ -42175,11 +42158,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 824 | Alert | In a querter mile Turn right onto Crothers Road.
   maneuver_index = 11;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-75.9893341f, 39.6789513f, 1483291546, 10.0500641),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -75.9893265f, 39.6789627f,
-                          leg_index, 9.54102802f, 2218, maneuver_index, 0.249833107f, 58,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-75.9893341f, 39.6789513f, 1483291546, 10.0500641),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -75.9893265f, 39.6789627f, leg_index, 9.54102802f,
+                                                2218, maneuver_index, 0.249833107f, 58,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 825
   maneuver_index = 11;
@@ -42762,11 +42746,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 897 | Alert | In 500 feet Bear right onto Principio Road.
   maneuver_index = 12;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0129547f, 39.6649094f, 1483292009, 4.60427904f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0129471f, 39.6648979f,
-                          leg_index, 7.62828684f, 1764, maneuver_index, 0.103219032f, 24,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0129547f, 39.6649094f, 1483292009, 4.60427904f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0129471f, 39.6648979f, leg_index, 7.62828684f,
+                                                1764, maneuver_index, 0.103219032f, 24,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 898
   maneuver_index = 12;
@@ -43244,11 +43229,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 957 | Alert | In 500 feet Turn right onto Red Toad Road
   maneuver_index = 13;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.036644f, 39.6517868f, 1483292362, 9.18606091f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0366364f, 39.6517792f,
-                          leg_index, 6.02032042f, 1425, maneuver_index, 0.106441975f, 23,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.036644f, 39.6517868f, 1483292362, 9.18606091f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0366364f, 39.6517792f, leg_index, 6.02032042f,
+                                                1425, maneuver_index, 0.106441975f, 23,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 958
   maneuver_index = 13;
@@ -43535,11 +43521,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 993 | Alert | In 500 feet Turn left onto Post Road.
   maneuver_index = 14;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0444412f, 39.6545296f, 1483292507, 3.96355104f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0444717f, 39.6544838f,
-                          leg_index, 5.4703393f, 1279, maneuver_index, 0.11280489f, 31,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0444412f, 39.6545296f, 1483292507, 3.96355104f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0444717f, 39.6544838f, leg_index, 5.4703393f,
+                                                1279, maneuver_index, 0.11280489f, 31,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 994
   maneuver_index = 14;
@@ -43698,11 +43685,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 1013 | Alert | In 500 feet Turn left onto Hopewell Road.
   maneuver_index = 15;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0489044f, 39.6536369f, 1483292600, 3.4647851f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0488892f, 39.6536217f,
-                          leg_index, 5.1843586f, 1195, maneuver_index, 0.115576267f, 35,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0489044f, 39.6536369f, 1483292600, 3.4647851f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0488892f, 39.6536217f, leg_index, 5.1843586f,
+                                                1195, maneuver_index, 0.115576267f, 35,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1014
   maneuver_index = 15;
@@ -44204,11 +44192,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 1076 | Alert | In 500 feet Turn left onto Jacob Tome Highway.
   maneuver_index = 16;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.070694f, 39.6380463f, 1483292979, 4.47354794f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0706253f, 39.6379852f,
-                          leg_index, 3.59119034f, 799, maneuver_index, 0.108581066f, 26,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.070694f, 39.6380463f, 1483292979, 4.47354794f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0706253f, 39.6379852f, leg_index, 3.59119034f,
+                                                799, maneuver_index, 0.108581066f, 26,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1077
   maneuver_index = 16;
@@ -44623,11 +44612,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 1128 | Alert | In 500 feet Turn right onto Waibel Road.
   maneuver_index = 17;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.0874176f, 39.6260262f, 1483293288, 6.84588194f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0873642f, 39.6259804f,
-                          leg_index, 2.33497715f, 504, maneuver_index, 0.0782876015f, 19,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.0874176f, 39.6260262f, 1483293288, 6.84588194f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0873642f, 39.6259804f, leg_index, 2.33497715f,
+                                                504, maneuver_index, 0.0782876015f, 19,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1129
   maneuver_index = 17;
@@ -44769,11 +44759,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 1146 | Alert | In a quarter mile Turn left onto Doctor Jack Road.
   maneuver_index = 18;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.09021f, 39.6292496f, 1483293361, 10.9508133f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.0902557f, 39.6292229f,
-                          leg_index, 1.95349228f, 421, maneuver_index, 0.280190349f, 61,
-                          instruction_index, kFinalMediumTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.09021f, 39.6292496f, 1483293361, 10.9508133f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.0902557f, 39.6292229f, leg_index, 1.95349228f,
+                                                421, maneuver_index, 0.280190349f, 61,
+                                                instruction_index,
+                                                kFinalMediumTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1147
   maneuver_index = 18;
@@ -44884,9 +44875,8 @@ void TestRoadBikeLunchRideLoop() {
   instruction_index = maneuver_index + 1;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.0914612f, 39.6328239f, 1483293422, 4.49372721f),
                             GetNavigationStatus(NavigationStatus_RouteState_kPreTransition,
-                                                -76.0915146f, 39.6328278f, leg_index, 1.6877352f,
-                                                364, maneuver_index, 0.0144332647f, 4,
-                                                instruction_index));
+                                                -76.0915146f, 39.6328278f, leg_index, 1.6877352f, 364,
+                                                maneuver_index, 0.0144332647f, 4, instruction_index));
   //----------------------------------------------------------------
   // trace point = 1161
   maneuver_index = 19;
@@ -44909,9 +44899,8 @@ void TestRoadBikeLunchRideLoop() {
   instruction_index = maneuver_index;
   TryRouteOnLocationChanged(nav, GetFixLocation(-76.0918274f, 39.63311f, 1483293433, 6.43003798f),
                             GetNavigationStatus(NavigationStatus_RouteState_kPostTransition,
-                                                -76.091835f, 39.6330414f, leg_index, 1.65254712f,
-                                                356, maneuver_index, 1.65254712f, 356,
-                                                instruction_index));
+                                                -76.091835f, 39.6330414f, leg_index, 1.65254712f, 356,
+                                                maneuver_index, 1.65254712f, 356, instruction_index));
   //----------------------------------------------------------------
   // trace point = 1164
   maneuver_index = 19;
@@ -45460,11 +45449,12 @@ void TestRoadBikeLunchRideLoop() {
   // trace point = 1232 | Alert | In 500 feet You will arrive at your destination.
   maneuver_index = 19;
   instruction_index = maneuver_index + 1;
-  TryRouteOnLocationChanged(
-      nav, GetFixLocation(-76.1192093f, 39.6396484f, 1483293721, 7.21953201f),
-      GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert, -76.1192322f, 39.6395988f,
-                          leg_index, 0.105086394f, 23, maneuver_index, 0.105086394f, 23,
-                          instruction_index, kFinalShortTransitionAlertImperialLength));
+  TryRouteOnLocationChanged(nav, GetFixLocation(-76.1192093f, 39.6396484f, 1483293721, 7.21953201f),
+                            GetNavigationStatus(NavigationStatus_RouteState_kTransitionAlert,
+                                                -76.1192322f, 39.6395988f, leg_index, 0.105086394f,
+                                                23, maneuver_index, 0.105086394f, 23,
+                                                instruction_index,
+                                                kFinalShortTransitionAlertImperialLength));
   //----------------------------------------------------------------
   // trace point = 1233
   maneuver_index = 19;
@@ -45519,9 +45509,9 @@ void TestRoadBikeLunchRideLoop() {
 void TryIsTimeWithinBounds(bool found, bool expected) {
 
   if (found != expected)
-    throw std::runtime_error("Incorrect IsTimeWithinBounds value - found: " +
-                             std::string(found ? "true" : "false") + " | expected: " +
-                             std::string(expected ? "true" : "false"));
+    throw std::runtime_error(
+        "Incorrect IsTimeWithinBounds value - found: " + std::string(found ? "true" : "false") +
+        " | expected: " + std::string(expected ? "true" : "false"));
 }
 
 void TestIsTimeWithinBounds() {
