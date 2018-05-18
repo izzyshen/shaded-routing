@@ -7,9 +7,10 @@
 #include "baldr/location.h"
 #include "midgard/pointll.h"
 #include "midgard/util.h"
-#include "proto/navigator.pb.h"
-#include "proto/route.pb.h"
 #include "tyr/navigator.h"
+
+#include <valhalla/proto/navigator.pb.h>
+#include <valhalla/proto/route.pb.h>
 
 #include "test.h"
 
