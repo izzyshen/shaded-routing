@@ -14,11 +14,11 @@ using namespace valhalla::midgard;
  */
 namespace {
 // Defaults thresholds
-float kAtMostLonger = 1.25f; // stretch threshold
+float kAtMostLonger = 10f; // stretch threshold
 // Alternative route shouldn't contain unreasonable detours. We should skip an alternative
 // if it has a detour longer than 2 x cost of the corresponding path in the optimal route.
-float kAtMostLongerDetour = 2.f;
-float kAtMostShared = 0.75f; // sharing threshold
+float kAtMostLongerDetour = 10.f;
+float kAtMostShared = 0.9f; // sharing threshold
 // float kAtLeastOptimal = 0.2f; // local optimality threshold
 } // namespace
 

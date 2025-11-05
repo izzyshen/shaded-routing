@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alternate Routes 시각화 도구</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 350px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        #sidebar h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #sidebar p {
+            font-size: 14px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+        }
+
+        .coord-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .coord-input {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            font-size: 13px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            word-break: break-word;
+        }
+
+        #map {
+            flex: 1;
+            height: 100vh;
+        }
+
+        .route-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+        }
+
+        .route-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .route-item:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .route-item.active {
+            background: rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .route-item h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .route-item p {
+            font-size: 12px;
+            margin: 4px 0;
+            opacity: 0.9;
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 4px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-weight: normal;
+        }
+
+        .info-text {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h1>🛣️ Alternate Routes</h1>
+        <p>다양한 경로 옵션을 지도에서 확인하세요</p>
+
+        <div class="form-group">
+            <label>서버 주소</label>
+            <input type="text" id="server-url" value="http://localhost:8002" placeholder="http://localhost:8002">
+            <div class="info-text">Valhalla 서비스 주소</div>
+        </div>
+
+        <div class="form-group">
+            <label>출발지 좌표</label>
+            <div class="coord-inputs">
+                <div class="coord-input">
+                    <input type="number" id="origin-lat" step="0.000001" placeholder="위도" value="52.111893">
+                </div>
+                <div class="coord-input">
+                    <input type="number" id="origin-lon" step="0.000001" placeholder="경도" value="5.125282">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>목적지 좌표</label>
+            <div class="coord-inputs">
+                <div class="coord-input">
+                    <input type="number" id="dest-lat" step="0.000001" placeholder="위도" value="52.113731">
+                </div>
+                <div class="coord-input">
+                    <input type="number" id="dest-lon" step="0.000001" placeholder="경도" value="5.091155">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>코스팅 방법</label>
+            <select id="costing">
+                <option value="auto">자동차</option>
+                <option value="bicycle">자전거</option>
+                <option value="pedestrian">도보</option>
+                <option value="truck">트럭</option>
+                <option value="taxi">택시</option>
+                <option value="bus">버스</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>대체 경로 개수</label>
+            <input type="number" id="alternates" min="0" max="10" value="2" placeholder="0-10">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="show-all" checked>
+            <label for="show-all">모든 경로 표시</label>
+        </div>
+
+        <button id="generate-btn" onclick="generateRoutes()">경로 생성</button>
+        <button id="clear-btn" onclick="clearRoutes()" style="background: rgba(255,0,0,0.3);">지도 초기화</button>
+
+        <div id="routes-info" class="route-info" style="display: none;">
+            <h3>경로 목록</h3>
+            <div id="routes-list"></div>
+        </div>
+
+        <div class="legend">
+            <h3>범례</h3>
+            <div id="legend-items"></div>
+        </div>
+
+        <div id="status" class="status-info">대기 중...</div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        // 지도 초기화
+        const map = L.map('map').setView([52.111893, 5.125282], 13);
+        
+        // CartoDB Positron - 단순하고 깔끔한 스타일
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        let originMarker = null;
+        let destMarker = null;
+        let routeLayers = [];
+        let routesData = [];
+        let currentActiveRoute = null;
+
+        // 경로 색상 정의
+        const routeColors = [
+            '#FF0000', // 빨강 - 최적 경로
+            '#0000FF', // 파랑 - 대체 경로 1
+            '#00FF00', // 초록 - 대체 경로 2
+            '#FF00FF', // 자홍 - 대체 경로 3
+            '#00FFFF', // 청록 - 대체 경로 4
+            '#FFFF00', // 노랑 - 대체 경로 5
+            '#FFA500', // 주황 - 대체 경로 6
+            '#800080', // 보라 - 대체 경로 7
+            '#FFC0CB', // 분홍 - 대체 경로 8
+            '#A52A2A', // 갈색 - 대체 경로 9
+            '#808080', // 회색 - 대체 경로 10
+        ];
+
+        // 지도 클릭 이벤트
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            
+            // 출발지/목적지 마커 토글
+            if (!originMarker) {
+                originMarker = L.marker([lat, lon], {draggable: true}).addTo(map);
+                originMarker.bindPopup('출발지').openPopup();
+                document.getElementById('origin-lat').value = lat.toFixed(6);
+                document.getElementById('origin-lon').value = lon.toFixed(6);
+                
+                originMarker.on('dragend', function() {
+                    const pos = originMarker.getLatLng();
+                    document.getElementById('origin-lat').value = pos.lat.toFixed(6);
+                    document.getElementById('origin-lon').value = pos.lng.toFixed(6);
+                });
+            } else if (!destMarker) {
+                destMarker = L.marker([lat, lon], {draggable: true}).addTo(map);
+                destMarker.bindPopup('목적지').openPopup();
+                document.getElementById('dest-lat').value = lat.toFixed(6);
+                document.getElementById('dest-lon').value = lon.toFixed(6);
+                
+                destMarker.on('dragend', function() {
+                    const pos = destMarker.getLatLng();
+                    document.getElementById('dest-lat').value = pos.lat.toFixed(6);
+                    document.getElementById('dest-lon').value = pos.lng.toFixed(6);
+                });
+            } else {
+                // 둘 다 있으면 출발지 재설정
+                map.removeLayer(originMarker);
+                originMarker = L.marker([lat, lon], {draggable: true}).addTo(map);
+                originMarker.bindPopup('출발지').openPopup();
+                document.getElementById('origin-lat').value = lat.toFixed(6);
+                document.getElementById('origin-lon').value = lon.toFixed(6);
+                
+                originMarker.on('dragend', function() {
+                    const pos = originMarker.getLatLng();
+                    document.getElementById('origin-lat').value = pos.lat.toFixed(6);
+                    document.getElementById('origin-lon').value = pos.lng.toFixed(6);
+                });
+                
+                map.removeLayer(destMarker);
+                destMarker = null;
+            }
+        });
+
+        // Polyline 디코딩 함수 (Valhalla는 polyline6 사용)
+        function decodePolyline(encoded) {
+            const poly = [];
+            let index = 0;
+            const len = encoded.length;
+            let lat = 0;
+            let lng = 0;
+
+            while (index < len) {
+                let b;
+                let shift = 0;
+                let result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                const dlat = ((result & 1) !== 0) ? ~(result >> 1) : (result >> 1);
+                lat += dlat;
+
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                const dlng = ((result & 1) !== 0) ? ~(result >> 1) : (result >> 1);
+                lng += dlng;
+
+                poly.push([lat * 1e-5, lng * 1e-5]);
+            }
+            return poly;
+        }
+
+        // 경로 생성 함수
+        async function generateRoutes() {
+            const serverUrl = document.getElementById('server-url').value.trim();
+            const originLat = parseFloat(document.getElementById('origin-lat').value);
+            const originLon = parseFloat(document.getElementById('origin-lon').value);
+            const destLat = parseFloat(document.getElementById('dest-lat').value);
+            const destLon = parseFloat(document.getElementById('dest-lon').value);
+            const costing = document.getElementById('costing').value;
+            const alternates = parseInt(document.getElementById('alternates').value);
+
+            if (!originLat || !originLon || !destLat || !destLon) {
+                updateStatus('오류: 모든 좌표를 입력해주세요.', 'error');
+                return;
+            }
+
+            updateStatus('경로 요청 중...', 'loading');
+            document.getElementById('generate-btn').disabled = true;
+
+            // 기존 경로 제거
+            clearRoutes();
+
+            // 마커 업데이트
+            if (originMarker) map.removeLayer(originMarker);
+            if (destMarker) map.removeLayer(destMarker);
+
+            originMarker = L.marker([originLat, originLon], {draggable: true}).addTo(map);
+            originMarker.bindPopup('출발지').openPopup();
+            destMarker = L.marker([destLat, destLon], {draggable: true}).addTo(map);
+            destMarker.bindPopup('목적지').openPopup();
+
+            try {
+                const requestBody = {
+                    locations: [
+                        {lat: originLat, lon: originLon},
+                        {lat: destLat, lon: destLon}
+                    ],
+                    costing: costing,
+                    alternates: alternates,
+                    directions_options: {
+                        units: "kilometers"
+                    }
+                };
+
+                // Timeout helper
+                const fetchWithTimeout = (url, options = {}, timeoutMs = 10000) => {
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), timeoutMs);
+                    return fetch(url, { ...options, signal: controller.signal })
+                        .finally(() => clearTimeout(id));
+                };
+
+                // Try GET first, fallback to POST on network error
+                const qs = encodeURIComponent(JSON.stringify(requestBody));
+                let response;
+                let lastGetNetworkError = null;
+                try {
+                    response = await fetchWithTimeout(`${serverUrl}/route?json=${qs}`, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                } catch (getError) {
+                    lastGetNetworkError = getError;
+                }
+
+                if (!response) {
+                    try {
+                        response = await fetchWithTimeout(`${serverUrl}/route`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(requestBody)
+                        });
+                    } catch (postError) {
+                        const getMsg = lastGetNetworkError ? lastGetNetworkError.message : 'GET failed before POST fallback';
+                        throw new Error(`서버 연결 실패\n\n확인 사항:\n- Valhalla가 ${serverUrl} 에서 실행 중인지\n- /route 엔드포인트가 활성화되어 있는지\n- CORS(교차 출처) 문제인지 (localhost:5500 → ${serverUrl})\n\n세부정보:\nGET: ${getMsg}\nPOST: ${postError.message}`);
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    if (response.status === 404) {
+                        errorMessage = `서버를 찾을 수 없습니다 (404).\n확인 사항:\n1) Valhalla 서비스 실행 여부\n2) 서버 주소 확인 (현재: ${serverUrl})\n3) /route 엔드포인트 지원 여부`;
+                    } else if (response.status === 500) {
+                        errorMessage = `서버 오류 (500).\n응답: ${errorText.substring(0, 200)}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.error_code) {
+                    throw new Error(`오류 ${data.error_code}: ${data.error || '알 수 없는 오류'}`);
+                }
+                
+                if (!data.trip || !data.trip.routes || data.trip.routes.length === 0) {
+                    updateStatus('경로를 찾을 수 없습니다.', 'error');
+                    document.getElementById('generate-btn').disabled = false;
+                    return;
+                }
+
+                routesData = data.trip.routes;
+                displayRoutes(data.trip.routes);
+                updateStatus(`성공: ${routesData.length}개의 경로를 찾았습니다.`, 'success');
+                document.getElementById('generate-btn').disabled = false;
+
+            } catch (error) {
+                console.error('Error:', error);
+                updateStatus(`오류: ${error.message}`, 'error');
+                document.getElementById('generate-btn').disabled = false;
+            }
+        }
+
+        // 경로 표시 함수
+        function displayRoutes(routes) {
+            routeLayers = [];
+            const routesList = document.getElementById('routes-list');
+            routesList.innerHTML = '';
+            const legendItems = document.getElementById('legend-items');
+            legendItems.innerHTML = '';
+
+            const showAll = document.getElementById('show-all').checked;
+
+            routes.forEach((route, index) => {
+                const color = routeColors[index] || '#808080';
+                const isOptimal = index === 0;
+                const routeName = isOptimal ? '최적 경로' : `대체 경로 ${index}`;
+                
+                const leg = route.legs[0];
+                if (!leg || !leg.shape) return;
+
+                const summary = leg.summary || {};
+                const distance = (summary.length || 0).toFixed(2);
+                const time = Math.round((summary.time || 0) / 60);
+
+                // Polyline 디코딩
+                const coordinates = decodePolyline(leg.shape);
+                
+                // Leaflet 좌표 형식으로 변환 (lat, lng)
+                const latlngs = coordinates.map(coord => [coord[0], coord[1]]);
+
+                // 경로 라인 생성
+                const polyline = L.polyline(latlngs, {
+                    color: color,
+                    weight: isOptimal ? 5 : 4,
+                    opacity: showAll || index === 0 ? 0.8 : 0.3,
+                    dashArray: isOptimal ? null : '10, 5'
+                }).addTo(map);
+
+                // 경로 정보 팝업
+                polyline.bindPopup(`
+                    <b>${routeName}</b><br>
+                    거리: ${distance} km<br>
+                    시간: ${time} 분<br>
+                    교차로: ${leg.maneuvers ? leg.maneuvers.length : 0}개
+                `);
+
+                routeLayers.push(polyline);
+
+                // 경로 목록에 추가
+                const routeItem = document.createElement('div');
+                routeItem.className = 'route-item';
+                routeItem.style.borderLeft = `4px solid ${color}`;
+                if (index === 0) routeItem.classList.add('active');
+                
+                routeItem.innerHTML = `
+                    <h3>${routeName}</h3>
+                    <p>거리: ${distance} km</p>
+                    <p>시간: ${time} 분</p>
+                    <p>교차로: ${leg.maneuvers ? leg.maneuvers.length : 0}개</p>
+                `;
+
+                routeItem.onclick = function() {
+                    // 활성화된 경로 표시
+                    document.querySelectorAll('.route-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    routeItem.classList.add('active');
+                    
+                    // 다른 경로는 반투명하게
+                    routeLayers.forEach((layer, i) => {
+                        if (i === index) {
+                            layer.setStyle({opacity: 0.8, weight: 5});
+                            map.fitBounds(layer.getBounds(), {padding: [50, 50]});
+                        } else {
+                            layer.setStyle({opacity: 0.2, weight: 3});
+                        }
+                    });
+                };
+
+                routesList.appendChild(routeItem);
+
+                // 범례에 추가
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background-color: ${color};"></div>
+                    <span>${routeName}</span>
+                `;
+                legendItems.appendChild(legendItem);
+            });
+
+            // 경로 정보 표시
+            document.getElementById('routes-info').style.display = 'block';
+
+            // 지도 범위 조정
+            if (routeLayers.length > 0) {
+                const group = new L.featureGroup(routeLayers);
+                map.fitBounds(group.getBounds(), {padding: [50, 50]});
+            }
+        }
+
+        // 경로 초기화 함수
+        function clearRoutes() {
+            routeLayers.forEach(layer => map.removeLayer(layer));
+            routeLayers = [];
+            routesData = [];
+            document.getElementById('routes-info').style.display = 'none';
+            document.getElementById('routes-list').innerHTML = '';
+            document.getElementById('legend-items').innerHTML = '';
+            currentActiveRoute = null;
+        }
+
+        // 상태 업데이트 함수
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            
+            switch(type) {
+                case 'success':
+                    statusDiv.style.background = 'rgba(0,255,0,0.2)';
+                    break;
+                case 'error':
+                    statusDiv.style.background = 'rgba(255,0,0,0.2)';
+                    break;
+                case 'loading':
+                    statusDiv.style.background = 'rgba(255,255,0,0.2)';
+                    break;
+                default:
+                    statusDiv.style.background = 'rgba(255,255,255,0.1)';
+            }
+        }
+
+        // 모든 경로 표시 토글
+        document.getElementById('show-all').addEventListener('change', function() {
+            const showAll = this.checked;
+            routeLayers.forEach((layer, index) => {
+                if (showAll || index === 0) {
+                    layer.setStyle({opacity: 0.8});
+                } else {
+                    layer.setStyle({opacity: 0.3});
+                }
+            });
+        });
+
+        // Enter 키로 경로 생성
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+                generateRoutes();
+            }
+        });
+    </script>
+</body>
+</html>
