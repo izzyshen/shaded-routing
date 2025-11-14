@@ -606,6 +606,7 @@ PedestrianCost::PedestrianCost(const Costing& costing)
 
   allow_transit_connections_ = false;
 
+  set_default_geojson_scaling(0.4f, 0.8f);
   // Get the base costs
   get_base_costs(costing);
 
@@ -765,6 +766,20 @@ Cost PedestrianCost::EdgeCost(const baldr::DirectedEdge* edge,
   }
 
   factor *= edge->lit() + (!edge->lit() * unlit_factor_);
+
+  // Reduce cost for edges with more tree canopy (more trees = lower cost)
+  // tree_canopy_count ranges from 0-127, tree=0 uses default cost (no change)
+  // tree_canopy_factor_ multiplies the reduction (default 1.0, range 0.0-2.0)
+  // At 200% factor, maximum reduction is 90% to strongly favor tree-covered routes
+  uint32_t tree_canopy_count = tile->edgeinfo(edge).tree_canopy_count();
+  if (tree_canopy_count > 0 && tree_canopy_factor_ > 0.0f) {
+    // Base reduction of 45% at factor 1.0, up to 90% at factor 2.0
+    float tree_canopy_reduction = (tree_canopy_count / 127.0f) * 0.45f * tree_canopy_factor_;
+    // Clamp to maximum 90% reduction to avoid negative or zero cost
+    tree_canopy_reduction = std::min(tree_canopy_reduction, 0.9f);
+    factor *= (1.0f - tree_canopy_reduction);
+  }
+  factor *= GeoJsonCostMultiplier(tile->edgeinfo(edge).geojson_scores());
 
   // Slightly favor walkways/paths and penalize alleys and driveways.
   return {sec * factor, sec};

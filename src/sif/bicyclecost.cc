@@ -463,6 +463,7 @@ BicycleCost::BicycleCost(const Costing& costing)
     h.set_max_up_transitions(kUnlimitedTransitions);
   }
 
+  set_default_geojson_scaling(0.35f, 0.7f);
   // Get the base costs
   get_base_costs(costing);
 
@@ -621,7 +622,7 @@ bool BicycleCost::AllowedReverse(const baldr::DirectedEdge* edge,
 // Returns the cost to traverse the edge and an estimate of the actual time
 // (in seconds) to traverse the edge.
 Cost BicycleCost::EdgeCost(const baldr::DirectedEdge* edge,
-                           const graph_tile_ptr&,
+                           const graph_tile_ptr& tile,
                            const baldr::TimeInfo&,
                            uint8_t&) const {
   // Stairs/steps - high cost (travel speed = 1kph) so they are generally avoided.
@@ -702,6 +703,20 @@ Cost BicycleCost::EdgeCost(const baldr::DirectedEdge* edge,
         avoid_bad_surfaces_ * kSurfaceFactors[static_cast<uint32_t>(edge->surface()) -
                                               static_cast<uint32_t>(minimal_surface_penalized_)];
   }
+
+  // Reduce cost for edges with more tree canopy (more trees = lower cost)
+  // tree_canopy_count ranges from 0-127, tree=0 uses default cost (no change)
+  // tree_canopy_factor_ multiplies the reduction (default 1.0, range 0.0-2.0)
+  // At 200% factor, maximum reduction is 85% to strongly favor tree-covered routes
+  uint32_t tree_canopy_count = tile->edgeinfo(edge).tree_canopy_count();
+  if (tree_canopy_count > 0 && tree_canopy_factor_ > 0.0f) {
+    // Base reduction of 42.5% at factor 1.0, up to 85% at factor 2.0
+    float tree_canopy_reduction = (tree_canopy_count / 127.0f) * 0.425f * tree_canopy_factor_;
+    // Clamp to maximum 85% reduction to avoid negative or zero cost
+    tree_canopy_reduction = std::min(tree_canopy_reduction, 0.85f);
+    factor *= (1.0f - tree_canopy_reduction);
+  }
+  factor *= GeoJsonCostMultiplier(tile->edgeinfo(edge).geojson_scores());
 
   // Compute bicycle speed. If you have to dismount on the edge then set speed to an average
   // walking speed. Otherwise, set speed based on surface factor and grade. Lower bike speed

@@ -136,7 +136,8 @@ BaseCostingOptionsConfig::BaseCostingOptionsConfig()
                                                                                   kDefaultUseTracks,
                                                                                   1.f},
       use_living_streets_{0.f, kDefaultUseLivingStreets, 1.f}, use_lit_{0.f, kDefaultUseLit, 1.f},
-      closure_factor_{kClosureFactorRange}, exclude_unpaved_(false), exclude_bridges_(false),
+      closure_factor_{kClosureFactorRange}, tree_canopy_factor_{0.0f, 1.0f, 2.0f},
+      exclude_unpaved_(false), exclude_bridges_(false),
       exclude_tunnels_(false), exclude_tolls_(false), exclude_highways_(false),
       exclude_ferries_(false), has_excludes_(false),
       exclude_cash_only_tolls_(false), include_hot_{false}, include_hov2_{false}, include_hov3_{
@@ -529,6 +530,37 @@ void ParseBaseCostOptions(const rapidjson::Value& json,
   // closure_factor
   JSON_PBF_RANGED_DEFAULT(co, cfg.closure_factor_, json, "/closure_factor", closure_factor);
 
+  // tree_canopy_factor
+  JSON_PBF_RANGED_DEFAULT(co, cfg.tree_canopy_factor_, json, "/tree_canopy_factor",
+                          tree_canopy_factor);
+
+  // geojson_layer_factors
+  auto geojson_factors = rapidjson::get_child_optional(json, "/geojson_layer_factors");
+  if (geojson_factors && geojson_factors->IsArray()) {
+    for (const auto& entry : geojson_factors->GetArray()) {
+      if (!entry.IsObject()) {
+        continue;
+      }
+      auto* factor = co->add_geojson_layer_factors();
+      if (entry.HasMember("slot") && entry["slot"].IsUint()) {
+        factor->set_slot(entry["slot"].GetUint());
+      }
+      if (entry.HasMember("name") && entry["name"].IsString()) {
+        factor->set_name(entry["name"].GetString());
+      }
+      if (entry.HasMember("factor") && entry["factor"].IsNumber()) {
+        factor->set_factor(entry["factor"].GetFloat());
+      } else {
+        factor->set_factor(1.0f);
+      }
+      if (entry.HasMember("max_reduction") && entry["max_reduction"].IsNumber()) {
+        factor->set_max_reduction(entry["max_reduction"].GetFloat());
+      }
+      if (entry.HasMember("base_multiplier") && entry["base_multiplier"].IsNumber()) {
+        factor->set_base_multiplier(entry["base_multiplier"].GetFloat());
+      }
+    }
+  }
   // HOT/HOV
   JSON_PBF_DEFAULT_V2(co, cfg.include_hot_, json, "/include_hot", include_hot);
   JSON_PBF_DEFAULT_V2(co, cfg.include_hov2_, json, "/include_hov2", include_hov2);

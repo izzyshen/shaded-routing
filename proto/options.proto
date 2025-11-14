@@ -68,6 +68,18 @@ message AvoidEdge {
   }
 }
 
+message GeoJsonLayerFactor {
+  uint32 slot = 1;
+  string name = 2;
+  float factor = 3;
+  oneof has_max_reduction {
+    float max_reduction = 4;
+  }
+  oneof has_base_multiplier {
+    float base_multiplier = 5;
+  }
+}
+
 /**
  * Hierarchy limits controls expansion and transitions between hierarchy
  * levels. It allows limiting expansion on hierarchy levels once
@@ -319,6 +331,10 @@ message Costing {
     bool exclude_ferries = 91;
     map<uint32, HierarchyLimits> hierarchy_limits = 92;
     bool ignore_construction = 93;
+    oneof has_tree_canopy_factor {
+      float tree_canopy_factor = 94;
+    }
+    repeated GeoJsonLayerFactor geojson_layer_factors = 95;
   }
 
   oneof has_options {
