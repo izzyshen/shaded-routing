@@ -1256,8 +1256,8 @@
         <div id="location-panel" class="collapsible-panel hidden">
             <div class="form-group" style="margin-bottom: 16px;">
                 <label>Server Address</label>
-                <input type="text" id="server-url" value="http://localhost:8002" placeholder="http://localhost:8002">
-                <div class="info-text">Valhalla service address</div>
+                <input type="text" id="server-url" value="https://exostotic-shanna-nontheologically.ngrok-free.dev" placeholder="http://localhost:8002 or https://your-ngrok-url.ngrok-free.dev">
+                <div class="info-text">Valhalla service address (localhost or ngrok URL)</div>
             </div>
 
             <div class="form-group" style="margin-bottom: 16px;">
@@ -1518,6 +1518,7 @@
         const LOOP_MAX_RADIUS = 20000; // meters
         const LOOP_TOLERANCE_SECONDS_MIN = 90;
         const LOOP_TOLERANCE_RATIO = 0.15;
+        const LOOP_SMOOTHNESS_RETURN_THRESHOLD = 1.15;
         const LOOP_SPEED_GUESSES = {
             auto: 18,
             truck: 14,
@@ -1811,6 +1812,9 @@
         function toRadians(degrees) {
             return degrees * Math.PI / 180;
         }
+        function toDegrees(radians) {
+            return radians * 180 / Math.PI;
+        }
 
         function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
             const dLat = toRadians(lat2 - lat1);
@@ -1820,6 +1824,102 @@
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return EARTH_RADIUS_METERS * c;
+        }
+
+        function vectorHeadingDegrees(pointA, pointB) {
+            if (!pointA || !pointB) return 0;
+            const lat1 = toRadians(pointA.lat);
+            const lat2 = toRadians(pointB.lat);
+            const dLon = toRadians(pointB.lon - pointA.lon);
+            const y = Math.sin(dLon) * Math.cos(lat2);
+            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+            return (toDegrees(Math.atan2(y, x)) + 360) % 360;
+        }
+
+        function angularSeparationDegrees(h1, h2) {
+            const diff = Math.abs(h1 - h2) % 360;
+            return diff <= 180 ? diff : 360 - diff;
+        }
+
+        function extractRouteCoordinates(route) {
+            const coords = [];
+            if (!route || !Array.isArray(route.legs)) {
+                return coords;
+            }
+            route.legs.forEach((leg, legIndex) => {
+                if (!leg || !leg.shape) return;
+                const decoded = decodePolyline(leg.shape);
+                decoded.forEach((coord, coordIndex) => {
+                    if (
+                        legIndex > 0 &&
+                        coordIndex === 0 &&
+                        coords.length > 0 &&
+                        Math.abs(coords[coords.length - 1].lat - coord[0]) < 1e-6 &&
+                        Math.abs(coords[coords.length - 1].lon - coord[1]) < 1e-6
+                    ) {
+                        return;
+                    }
+                    coords.push({ lat: coord[0], lon: coord[1] });
+                });
+            });
+            return coords;
+        }
+
+        function computeRouteTurnSmoothness(route, predecodedCoords = null) {
+            const points = Array.isArray(predecodedCoords) ? predecodedCoords : extractRouteCoordinates(route);
+            if (!points || points.length < 4) {
+                return null;
+            }
+
+            const headings = [];
+            const segmentLengths = [];
+
+            for (let i = 0; i < points.length - 1; i++) {
+                const a = points[i];
+                const b = points[i + 1];
+                const segLen = haversineDistanceMeters(a.lat, a.lon, b.lat, b.lon);
+                if (!Number.isFinite(segLen) || segLen <= 0.5) {
+                    continue;
+                }
+                segmentLengths.push(segLen);
+                headings.push(vectorHeadingDegrees(a, b));
+            }
+
+            if (segmentLengths.length < 2 || headings.length < 2) {
+                return null;
+            }
+
+            const turnDiffs = [];
+            for (let i = 1; i < headings.length; i++) {
+                turnDiffs.push(angularSeparationDegrees(headings[i - 1], headings[i]));
+            }
+
+            if (!turnDiffs.length) {
+                return null;
+            }
+
+            const avgTurn = turnDiffs.reduce((sum, value) => sum + value, 0) / turnDiffs.length;
+            const sharpTurns = turnDiffs.filter(diff => diff >= 70).length;
+            const backtrackTurns = turnDiffs.filter(diff => diff >= 150).length;
+            const shortSegments = segmentLengths.filter(len => len < 25).length;
+
+            const shortRatio = shortSegments / Math.max(1, segmentLengths.length);
+            const sharpRatio = sharpTurns / turnDiffs.length;
+            const backtrackRatio = backtrackTurns / turnDiffs.length;
+
+            const penalty = Math.max(
+                0,
+                (avgTurn / 110) + (sharpRatio * 1.35) + (backtrackRatio * 1.5) + (shortRatio * 1.25)
+            );
+
+            return {
+                penalty,
+                avgTurnDeg: avgTurn,
+                sharpTurnRatio: sharpRatio,
+                backtrackRatio,
+                shortSegmentRatio: shortRatio,
+                segmentCount: segmentLengths.length
+            };
         }
 
         function computeTreeCanopyScore(properties = {}) {
@@ -2732,7 +2832,10 @@
             try {
                 response = await fetchWithTimeout(`${serverUrl}/route?json=${qs}`, {
                     method: 'GET',
-                    headers: { 'Accept': 'application/json' }
+                    headers: {
+                        'Accept': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
                 });
             } catch (getError) {
                 lastGetNetworkError = getError;
@@ -2744,7 +2847,8 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'ngrok-skip-browser-warning': 'true'
                         },
                         body: JSON.stringify(requestBody)
                     });
@@ -2879,6 +2983,52 @@
             return routes;
         }
 
+        function compareScoreTuples(a = [], b = []) {
+            const length = Math.max(a.length, b.length);
+            for (let i = 0; i < length; i++) {
+                const aval = i < a.length ? a[i] : Number.POSITIVE_INFINITY;
+                const bval = i < b.length ? b[i] : Number.POSITIVE_INFINITY;
+                if (aval < bval - 1e-6) return -1;
+                if (aval > bval + 1e-6) return 1;
+            }
+            return 0;
+        }
+
+        function rankLoopRoutesBySmoothness(routes, targetSeconds) {
+            if (!Array.isArray(routes) || routes.length === 0) {
+                return {
+                    rankedRoutes: [],
+                    bestSummary: null,
+                    bestSmoothness: null,
+                    bestScore: null,
+                    bestDiff: Number.POSITIVE_INFINITY
+                };
+            }
+
+            const scored = routes.map((route, index) => {
+                const coords = extractRouteCoordinates(route);
+                const summary = getRouteSummary(route) || {};
+                const smoothness = computeRouteTurnSmoothness(route, coords);
+                const timeSeconds = summary.time || 0;
+                const diff = Math.abs((targetSeconds || 0) - timeSeconds);
+                const penalty = smoothness ? smoothness.penalty : 999;
+                const shortRatio = smoothness ? smoothness.shortSegmentRatio : 1;
+                const avgTurn = smoothness ? smoothness.avgTurnDeg : 999;
+                const score = [diff, penalty, shortRatio, avgTurn, index];
+                return { route, summary, smoothness, score, diff };
+            });
+
+            scored.sort((a, b) => compareScoreTuples(a.score, b.score));
+
+            return {
+                rankedRoutes: scored.map(entry => entry.route),
+                bestSummary: scored[0]?.summary || null,
+                bestSmoothness: scored[0]?.smoothness || null,
+                bestScore: scored[0]?.score || null,
+                bestDiff: scored[0]?.diff ?? Number.POSITIVE_INFINITY
+            };
+        }
+
         async function buildLoopRoutes({
             serverUrl,
             baseRequestBody,
@@ -2929,21 +3079,30 @@
 
                 try {
                     const routes = await fetchRoutesFromServer(serverUrl, requestBody, contextInfo);
-                    const summary = getRouteSummary(routes[0]);
-                    const routeTime = summary.time || 0;
-                    const diff = Math.abs((targetSeconds || 0) - routeTime);
+                    const ranking = rankLoopRoutesBySmoothness(routes, targetSeconds);
+                    if (!ranking.rankedRoutes.length) {
+                        throw new Error('No valid loop routes returned');
+                    }
 
-                    if (!bestResult || diff < bestResult.diff) {
+                    const diff = ranking.bestDiff;
+                    const smoothness = ranking.bestSmoothness;
+                    const candidateScore = ranking.bestScore || [diff];
+                    const routeTime = ranking.bestSummary?.time || 0;
+
+                    if (!bestResult || compareScoreTuples(candidateScore, bestResult.score || []) < 0) {
                         bestResult = {
-                            routes,
-                            summary,
+                            routes: ranking.rankedRoutes,
+                            summary: ranking.bestSummary,
                             diff,
-                            attempt
+                            attempt,
+                            score: candidateScore,
+                            smoothness
                         };
                     }
 
                     const tolerance = Math.max(LOOP_TOLERANCE_SECONDS_MIN, (targetSeconds || 0) * LOOP_TOLERANCE_RATIO);
-                    if (!targetSeconds || targetSeconds <= 0 || diff <= tolerance) {
+                    const smoothEnough = !smoothness || smoothness.penalty <= LOOP_SMOOTHNESS_RETURN_THRESHOLD;
+                    if (!targetSeconds || targetSeconds <= 0 || (diff <= tolerance && smoothEnough)) {
                         bestResult.bestEffort = diff > tolerance;
                         bestResult.toleranceMet = diff <= tolerance;
                         return bestResult;
@@ -3240,6 +3399,9 @@
                     const attemptInfo = `attempt ${loopResult.attempt}/${LOOP_MAX_ATTEMPTS}`;
                     const suffix = loopResult.bestEffort ? ' (closest match)' : '';
                     let statusMessage = `Closed loop ready: ~${loopMinutes} min vs target ${targetDurationMinutes} min using ${waypointCount} waypoint${waypointCount === 1 ? '' : 's'} (${attemptInfo})${suffix}. diff ~${diffMinutes} min`;
+                    if (loopResult.smoothness) {
+                        statusMessage += ` | smoothness ${loopResult.smoothness.penalty.toFixed(2)} (${Math.round(loopResult.smoothness.avgTurnDeg)}° avg turn)`;
+                    }
                     if (exploreModeEnabled) {
                         statusMessage += ` 🗺️ Explore: ${exploredEdges.length} edges avoided`;
                     }
@@ -3354,21 +3516,13 @@
                     return sum + leg.maneuvers.length;
                 }, 0);
 
-                const coordinates = [];
-                legs.forEach((leg, legIndex) => {
-                    if (!leg || !leg.shape) return;
-                    const legCoords = decodePolyline(leg.shape);
-                    legCoords.forEach((coord, coordIndex) => {
-                        if (legIndex > 0 && coordIndex === 0 && coordinates.length > 0) {
-                            return;
-                        }
-                        coordinates.push(coord);
-                    });
-                });
+                const routeCoords = extractRouteCoordinates(route);
+                if (!routeCoords.length) return;
 
-                if (coordinates.length === 0) return;
-
-                const latlngs = coordinates.map(coord => [coord[0], coord[1]]);
+                const latlngs = routeCoords.map(coord => [coord.lat, coord.lon]);
+                const smoothness = computeRouteTurnSmoothness(route, routeCoords);
+                const smoothLabel = smoothness ? smoothness.penalty.toFixed(2) : '—';
+                const avgTurnLabel = smoothness ? `${Math.round(smoothness.avgTurnDeg)}° avg` : 'n/a';
 
                 // Create route line
                 const polyline = L.polyline(latlngs, {
@@ -3387,7 +3541,8 @@
                     Distance: ${distance} km<br>
                     Time: ${time} min<br>
                     Maneuvers: ${maneuversCount}<br>
-                    Segments: ${legs.length}
+                    Segments: ${legs.length}<br>
+                    Smoothness: ${smoothLabel} (${avgTurnLabel})
                 `);
 
                 routeLayers.push(polyline);
@@ -3404,6 +3559,7 @@
                     <p>Time: ${time} min</p>
                     <p>Maneuvers: ${maneuversCount}</p>
                     <p>Segments: ${legs.length}</p>
+                    <p>Smoothness penalty: ${smoothLabel}</p>
                 `;
 
                 routeItem.onclick = function() {
