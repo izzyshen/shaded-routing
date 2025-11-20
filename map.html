@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alternate Routes</title>
-    
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <style>
         * {
             margin: 0;
@@ -18,6 +18,19 @@
         }
 
         :root {
+            --bg-color: #f0f2f5;
+            --sidebar-bg: rgba(255, 255, 255, 0.8);
+            --sidebar-border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --accent-color: #007aff;
+            --accent-color-light: rgba(0, 122, 255, 0.1);
+            --accent-color-dark: #0056b3;
+            --destructive-color: #ff3b30;
+            --card-bg: #ffffff;
+            --input-bg: #f0f2f5;
+            --input-border: #d1d1d6;
+
             --route-theme-color: #C62828;
             --dest-pin-size: 32px;
             --dest-pin-inner: 12px;
@@ -26,41 +39,15 @@
             --glass-shadow: rgba(31, 38, 135, 0.15);
         }
 
-        /* Glass Morphism Animation */
-        @keyframes glassShimmer {
-            0%, 100% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-        }
-
-        /* Ambient Color Animation */
-        @keyframes ambientGradient {
-            0% {
-                background-position: 0% 50%;
-            }
-            25% {
-                background-position: 50% 100%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            75% {
-                background-position: 50% 0%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
         /* Voice Input Pulse Animation */
         @keyframes pulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
                 box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
             }
+
             50% {
                 transform: scale(1.05);
                 box-shadow: 0 0 0 10px rgba(255, 59, 48, 0);
@@ -68,103 +55,119 @@
         }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            display: flex;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             height: 100vh;
             overflow: hidden;
-            background: #E5E5EA;
+            background: var(--bg-color);
+            position: relative;
         }
 
         #sidebar {
-            width: 380px;
-            background: rgba(255, 255, 255, 0.15);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-height: calc(100% - 60px);
+            background: var(--sidebar-bg);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            color: #1D1D1F;
-            padding: 32px 24px;
+            color: var(--text-primary);
             overflow-y: auto;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            border-right: 1px solid rgba(255, 255, 255, 0.18);
-            order: 2;
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--sidebar-border);
+            border-radius: 20px 20px 0 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(100%);
+            /* Hidden by default */
+        }
+
+        #sidebar-content {
+            padding: 0 20px 32px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #sidebar-handle {
+            padding: 12px;
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        #sidebar-handle::before {
+            content: '';
+            width: 40px;
+            height: 5px;
+            background-color: #c7c7cc;
+            border-radius: 2.5px;
         }
 
         #sidebar h1 {
             font-size: 28px;
             font-weight: 600;
-            margin-bottom: 8px;
-            text-align: left;
+            margin: 8px 0;
             letter-spacing: -0.5px;
-            color: #1D1D1F;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
         }
 
         #sidebar p {
             font-size: 15px;
-            margin-bottom: 32px;
-            color: #1D1D1F;
-            opacity: 0.8;
-            text-align: left;
+            margin-bottom: 24px;
+            color: var(--text-secondary);
             line-height: 1.5;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 500;
             font-size: 13px;
-            color: #1D1D1F;
+            color: var(--text-secondary);
             letter-spacing: -0.1px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
             font-size: 15px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #1D1D1F;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: rgba(0, 122, 255, 0.6);
-            background: rgba(255, 255, 255, 0.35);
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15), 0 4px 16px rgba(0, 122, 255, 0.2);
-            transform: translateY(-1px);
+            border-color: var(--accent-color);
+            background: var(--card-bg);
+            box-shadow: 0 0 0 3px var(--accent-color-light);
         }
 
         input[type="range"] {
-            width: 100% !important;
-            padding: 12px 0 !important;
-            height: 4px !important;
-            background: transparent !important;
-            border-radius: 2px;
-            outline: none;
             -webkit-appearance: none;
             appearance: none;
-            cursor: pointer;
-            margin: 20px 0;
-        }
-
-        input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 4px;
-            background: #E5E5EA !important;
-            border-radius: 2px;
-            border: none;
+            height: 5px;
+            background: var(--input-bg);
+            border-radius: 5px;
+            outline: none;
+            padding: 0 !important;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -172,11 +175,11 @@
             appearance: none;
             width: 20px;
             height: 20px;
-            background: #007AFF !important;
+            background: var(--card-bg) !important;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-            margin-top: -8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: -6.5px;
             border: none;
             transition: all 0.2s ease;
         }
@@ -228,9 +231,9 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin-bottom: 12px;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: inherit;
             letter-spacing: -0.2px;
-            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+            border: none;
         }
 
         .toggle-panel-btn {
@@ -245,13 +248,11 @@
         }
 
         .collapsible-panel {
-            margin-top: 16px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            margin-top: 12px;
+            padding: 16px;
+            background: var(--input-bg);
             border-radius: 12px;
+            border: 1px solid #e5e5ea;
         }
 
         .collapsible-panel.hidden {
@@ -259,10 +260,8 @@
         }
 
         button:hover {
-            background: rgba(0, 81, 213, 0.9);
+            background: var(--accent-color-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
-            border-color: rgba(255, 255, 255, 0.5);
         }
 
         button:active {
@@ -277,69 +276,55 @@
         }
 
         #clear-btn {
-            background: rgba(245, 245, 247, 0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #1D1D1F;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
 
         #clear-btn:hover {
-            background: rgba(229, 229, 234, 0.4);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: #e5e5ea;
         }
 
         #status {
-            margin-top: 24px;
+            margin-top: 16px;
             padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: var(--input-bg);
             border-radius: 10px;
             font-size: 14px;
             min-height: 48px;
             display: flex;
             align-items: center;
             word-break: break-word;
-            color: #1D1D1F;
+            color: var(--text-secondary);
             line-height: 1.5;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--input-border);
+            transition: all 0.2s ease;
         }
 
         #map {
             flex: 1;
             height: 100vh;
-            order: 1;
             position: relative;
+            width: 100%;
+            z-index: 1;
         }
 
-        body.sidebar-collapsed #sidebar {
-            display: none;
-        }
-
-        body.sidebar-collapsed #map {
-            flex: 1 1 100%;
-        }
-
-        .sidebar-toggle-btn {
+        .map-overlay-btn {
             position: fixed;
-            top: 24px;
-            right: calc(380px + 24px);
-            z-index: 1200;
+            top: 16px;
+            right: 16px;
+            z-index: 999;
             width: 44px;
             height: 44px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(29, 29, 31, 0.85);
-            color: #FFFFFF;
-            cursor: pointer;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-            transition: background 0.2s ease, color 0.2s ease, right 0.3s ease, transform 0.2s ease;
-            padding: 0;
+            cursor: pointer;
         }
 
         .sidebar-toggle-btn:focus-visible {
@@ -351,21 +336,44 @@
             background: rgba(58, 58, 60, 0.95);
         }
 
-        body.sidebar-collapsed .sidebar-toggle-btn {
-            right: 24px;
+        .panel-close-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid var(--sidebar-border);
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
         }
 
-        .sidebar-toggle-icon {
-            width: 12px;
-            height: 12px;
-            border-top: 2px solid #FFFFFF;
-            border-right: 2px solid #FFFFFF;
-            transform: rotate(45deg);
-            transition: transform 0.2s ease;
+        body.panel-fullscreen #fullscreen-panel-btn {
+            opacity: 0;
+            pointer-events: none;
         }
 
-        body.sidebar-collapsed .sidebar-toggle-icon {
-            transform: rotate(-135deg);
+        body.panel-fullscreen #panel-close-btn {
+            display: flex;
+        }
+
+        body.panel-fullscreen #sidebar {
+            transform: translateY(0);
+            max-height: 100vh;
+            height: 100vh;
+            border-radius: 0;
+            border-top: none;
+        }
+
+        body.panel-fullscreen #sidebar-content {
+            padding-top: 56px;
         }
 
         .ai-overlay {
@@ -384,10 +392,14 @@
             z-index: 1100;
         }
 
+        .ai-overlay.collapsed {
+            display: none;
+        }
+
         .ai-overlay label {
             font-size: 13px;
             font-weight: 600;
-            color: #1D1D1F;
+            color: var(--text-primary);
             letter-spacing: -0.2px;
             display: block;
             margin-bottom: 10px;
@@ -408,7 +420,7 @@
             resize: vertical;
             font-size: 14px;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #1D1D1F;
+            color: var(--text-primary);
             background: rgba(255, 255, 255, 0.95);
         }
 
@@ -453,7 +465,7 @@
 
         #ai-status {
             margin-top: 8px;
-            font-size: 12px;
+            font-size: 13px;
             color: #86868B;
             display: none;
         }
@@ -471,7 +483,7 @@
         .route-info h3 {
             font-size: 17px;
             font-weight: 600;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             color: #1D1D1F;
             letter-spacing: -0.3px;
         }
@@ -479,30 +491,24 @@
         .route-item {
             margin-bottom: 12px;
             padding: 16px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: var(--input-bg);
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid transparent;
         }
 
         .route-item:hover {
-            background: rgba(255, 255, 255, 0.35);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            border-color: rgba(255, 255, 255, 0.5);
+            background: #e5e5ea;
         }
 
         .route-item.active {
-            background: rgba(0, 122, 255, 0.25);
-            border: 1px solid rgba(0, 122, 255, 0.6);
-            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: var(--accent-color-light);
+            border-color: var(--accent-color);
         }
 
         .route-item.active:hover {
-            background: rgba(0, 122, 255, 0.3);
+            background: var(--accent-color-light);
         }
 
         .route-item h3 {
@@ -516,9 +522,35 @@
         .route-item p {
             font-size: 14px;
             margin: 4px 0;
-            color: #1D1D1F;
+            color: var(--text-secondary);
             opacity: 0.75;
             line-height: 1.4;
+        }
+
+        .ble-haptic-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(64px, 1fr));
+            gap: 8px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+
+        .ble-haptic-button {
+            background: #f5f5f7;
+            border: 1px solid #c7c7cc;
+            color: #1d1d1f;
+            font-weight: 700;
+            font-size: 15px;
+            border-radius: 10px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .ble-haptic-button:hover {
+            background: #ebebf0;
         }
 
         .legend {
@@ -577,7 +609,7 @@
             cursor: pointer;
         }
 
-        #explore-mode:checked + label {
+        #explore-mode:checked+label {
             color: #007AFF;
             font-weight: 500;
         }
@@ -597,7 +629,7 @@
             font-weight: 700;
             color: #FFFFFF;
             border: 2px solid #FFFFFF;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
         }
 
         .constraint-marker.avoid {
@@ -610,7 +642,7 @@
 
         .info-text {
             font-size: 12px;
-            color: #1D1D1F;
+            color: var(--text-secondary);
             opacity: 0.7;
             margin-top: 6px;
             line-height: 1.4;
@@ -619,7 +651,7 @@
         .slider-value--compact {
             background: transparent;
             border: none;
-            color: #1D1D1F;
+            color: var(--text-secondary);
             opacity: 0.7;
             font-size: 12px;
             padding: 0;
@@ -628,16 +660,16 @@
         }
 
         /* Custom Scrollbar for Glass UI */
-        #sidebar::-webkit-scrollbar {
+        #sidebar-content::-webkit-scrollbar {
             width: 8px;
         }
 
-        #sidebar::-webkit-scrollbar-track {
+        #sidebar-content::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
 
-        #sidebar::-webkit-scrollbar-thumb {
+        #sidebar-content::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 4px;
             transition: background 0.2s ease;
@@ -657,7 +689,7 @@
 
         .geojson-slider-row label {
             flex: 1;
-            font-size: 13px;
+            font-size: 14px;
             color: #1D1D1F;
             font-weight: 500;
         }
@@ -689,13 +721,14 @@
 
         .parameter-diff-card {
             position: absolute;
-            right: 24px;
-            bottom: 24px;
-            width: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+            width: min(360px, calc(100% - 32px));
             background: rgba(255, 255, 255, 0.95);
             border-radius: 14px;
-            border: 1px solid rgba(0,0,0,0.08);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
             padding: 16px 18px;
             font-size: 13px;
             color: #1D1D1F;
@@ -728,41 +761,52 @@
             color: #5C5C5C;
             font-size: 12px;
             padding-right: 8px;
+            line-height: 1.4;
         }
 
         .parameter-diff-row strong {
             font-size: 13px;
-            color: var(--route-theme-color);
+            font-weight: 700;
+            color: #111;
+            min-width: 56px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1;
+            padding: 0 6px;
         }
 
         .parameter-diff-row-controls {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
+            min-height: 32px;
         }
 
         .parameter-diff-adjust {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 1px solid rgba(0,0,0,0.2);
-            background: rgba(255,255,255,0.9);
-            color: var(--route-theme-color);
-            font-size: 14px;
-            line-height: 20px;
-            text-align: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            border: 1.4px solid #55595f;
+            background: #f2f2f7;
+            color: #2f3033;
+            font-size: 16px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
             cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        .parameter-diff-row:hover .parameter-diff-adjust {
             opacity: 1;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 0;
         }
 
         .parameter-diff-adjust:hover {
             transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
 
         .destination-pin-wrapper {
@@ -777,12 +821,12 @@
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg);
             transform-origin: 50% 70%;
-            border: 3px solid rgba(0,0,0,0.25);
+            border: 3px solid rgba(0, 0, 0, 0.25);
             display: inline-block;
             position: relative;
             top: calc(var(--dest-pin-size) * 0.2);
             left: calc(var(--dest-pin-size) * 0.2);
-            box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
         }
 
         .destination-pin::after {
@@ -803,7 +847,7 @@
             border-radius: 50%;
             border: 3px solid var(--route-theme-color);
             background: #FFD1D1;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
             position: relative;
         }
 
@@ -857,73 +901,10 @@
             display: none;
         }
 
-        @media (max-width: 900px) {
-            body {
-                flex-direction: column;
-                height: auto;
-                min-height: 100vh;
-                overflow-y: auto;
-            }
-
-            #sidebar {
-                width: 100%;
-                order: 2;
-                height: auto;
-                max-height: none;
-                border-right: none;
-                border-top: 1px solid rgba(0,0,0,0.06);
-                box-shadow: none;
-                padding: 24px 20px 32px;
-            }
-
-            #map {
-                order: 1;
-                flex: none;
-                height: 55vh;
-                min-height: 320px;
-                width: 100%;
-            }
-
-            .coord-inputs {
-                flex-direction: column;
-            }
-
-            button {
-                font-size: 17px;
-                padding: 16px 20px;
-            }
-
-            .form-group label {
-                font-size: 14px;
-            }
-
-            .checkbox-group {
-                flex-wrap: wrap;
-            }
-
-            .route-info,
-            .legend {
-                padding: 16px;
-            }
-
-            #status {
-                position: sticky;
-                bottom: 0;
-                left: 0;
-                margin-top: 16px;
-            }
-
-            .sidebar-toggle-btn {
-                top: 16px;
-                right: 20px;
-            }
-
-            body.sidebar-collapsed .sidebar-toggle-btn {
-                right: 20px;
-            }
-
+        /* Desktop specific styles */
+        @media (min-width: 768px) {
             .ai-overlay {
-                width: calc(100% - 32px);
+                width: min(600px, calc(100% - 48px));
                 bottom: 16px;
                 padding: 16px;
             }
@@ -936,69 +917,210 @@
                 width: 100%;
                 min-width: 0;
             }
+
+        }
+
+        @media (max-width: 767px) {
+            .parameter-diff-card {
+                bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
+        #ai-mini-btn {
+            position: fixed;
+            top: 72px;
+            right: 16px;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--sidebar-border);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            cursor: pointer;
+            z-index: 1099;
+        }
+
+        #ai-progress-indicator {
+            display: none;
         }
     </style>
 </head>
+
 <body>
-    <button id="sidebar-toggle" class="sidebar-toggle-btn" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Hide Panel" title="Hide Panel">
-        <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+    <div id="map"></div>
+
+    <!-- Optional local config (define window.APP_CONFIG.openaiApiKey) -->
+    <script src="config.local.js"></script>
+    <script>
+        window.APP_CONFIG = window.APP_CONFIG || {};
+        // API key should be entered by user in the UI or via config.local.js
+        // window.APP_CONFIG.openaiApiKey = 'your-api-key-here';
+    </script>
+
+    <button id="fullscreen-panel-btn" class="map-overlay-btn" aria-label="Show full panel" title="Show full panel">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
     </button>
+    <button id="panel-close-btn" class="panel-close-btn" aria-label="Hide panel" title="Hide panel">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+
+    <button id="generate-btn" class="main-action-button" onclick="generateRoutes()">Generate Routes</button>
+
     <div id="sidebar">
-        <h1>Alternate Routes</h1>
-        <p>Explore multiple route options on the map</p>
+        <div id="sidebar-handle" role="button" aria-label="Toggle panel height"></div>
+        <div id="sidebar-content">
+            <h1>Alternate Routes</h1>
+            <p>Explore multiple route options on the map</p>
 
-        <button id="generate-btn" onclick="generateRoutes()">Generate Routes</button>
+            <div class="checkbox-group" style="margin-bottom: 0;">
+                <input type="checkbox" id="loop-mode">
+                <label for="loop-mode">Closed loop (return to origin)</label>
+            </div>
 
-        <div class="checkbox-group" style="margin-bottom: 0;">
-            <input type="checkbox" id="loop-mode">
-            <label for="loop-mode">Closed loop (return to origin)</label>
+            <div id="loop-settings"
+                style="display: none; margin: 12px 0 24px 0; padding: 20px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--input-border);">
+                <div style="margin-bottom: 24px;">
+                    <label
+                        style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Target
+                        loop duration</label>
+                    <input type="range" id="loop-duration" min="10" max="240" value="60" step="5"
+                        class="costing-slider">
+                    <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
+                        <span style="font-size: 12px; color: #86868B;">10 min</span>
+                        <span id="loop-duration-display" class="slider-value">60 min</span>
+                        <span style="font-size: 12px; color: #86868B;">240 min</span>
+                    </div>
+                </div>
+                <div>
+                    <label
+                        style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Waypoint
+                        count</label>
+                    <input type="range" id="loop-waypoints" min="1" max="6" value="3" step="1" class="costing-slider">
+                    <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
+                        <span style="font-size: 12px; color: #86868B;">1</span>
+                        <span id="loop-waypoints-display" class="slider-value">3</span>
+                        <span style="font-size: 12px; color: #86868B;">6</span>
+                    </div>
+                    <div class="info-text" style="margin-top: 12px;">Waypoints are generated automatically within range
+                        to keep total travel time near the target.</div>
+                </div>
+            </div>
+
+            <div class="form-group"
+                style="margin-bottom: 16px; padding: 16px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--input-border);">
+                <h3 style="margin: 0 0 8px 0;">Device Integration</h3>
+                <p class="info-text" style="margin-top: 0;">Use BLE and GPS directly from your mobile browser (HTTPS
+                    required).</p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <button id="gps-start-btn" type="button" style="flex: 1 1 140px;">Start GPS</button>
+                    <button id="gps-stop-btn" type="button" style="flex: 1 1 140px;">Stop GPS</button>
+                </div>
+                <div id="gps-status" class="info-text" style="margin-bottom: 12px;">GPS idle</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <button id="ble-connect-btn" type="button" style="flex: 1 1 140px;">Connect BLE</button>
+                    <button id="ble-disconnect-btn" type="button" style="flex: 1 1 140px;">Disconnect BLE</button>
+                    <button id="ble-send-btn" type="button" style="flex: 1 1 140px;">Send BLE Test</button>
+                </div>
+                <div class="info-text" style="margin: 0 0 6px 0;">Haptic test buttons</div>
+                <div class="ble-haptic-grid">
+                    <button id="ble-left-short" type="button" class="ble-haptic-button">L</button>
+                    <button id="ble-left-long" type="button" class="ble-haptic-button">LL</button>
+                    <button id="ble-right-short" type="button" class="ble-haptic-button">R</button>
+                    <button id="ble-right-long" type="button" class="ble-haptic-button">RR</button>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
+                    <input id="ble-command-input" type="text" placeholder="Enter UTF-8 command"
+                        aria-label="BLE command input" style="flex: 1 1 220px; min-width: 0;">
+                    <button id="ble-send-command-btn" type="button" style="flex: 1 1 140px;">Send Command</button>
+                </div>
+                <div style="display: flex; width: 100%; margin-bottom: 8px;">
+                    <button id="ble-send-command-btn-second" type="button" style="width: 100%;">Send Command</button>
+                </div>
+                <div class="info-text" style="margin-top: 0; margin-bottom: 8px;">Commands are sent as UTF-8 over the
+                    configured characteristic.</div>
+                <div id="ble-status" class="info-text">BLE idle</div>
+                <div class="info-text" style="margin-top: 8px; font-size: 12px; color: #666;">Web Bluetooth is not
+                    supported on iOS Safari. Test on Android Chrome/Edge.</div>
+            </div>
+
         </div>
 
-        <div id="loop-settings" style="display: none; margin: 12px 0 24px 0; padding: 20px; background: #F5F5F7; border-radius: 12px; border: 1px solid #E5E5EA;">
-            <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Target loop duration</label>
-                <input type="range" id="loop-duration" min="10" max="240" value="60" step="5" class="costing-slider">
-                <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
-                    <span style="font-size: 12px; color: #86868B;">10 min</span>
-                    <span id="loop-duration-display" class="slider-value">60 min</span>
-                    <span style="font-size: 12px; color: #86868B;">240 min</span>
-                </div>
+        <!-- Seasonal Presets -->
+        <div class="form-group"
+            style="margin-bottom: 16px; padding: 16px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--input-border);">
+            <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 600;">Seasonal Presets</h3>
+
+            <div style="margin-bottom: 12px;">
+                <label for="season-select" style="display: block; margin-bottom: 8px;">Select Season</label>
+                <select id="season-select" onchange="applySeason(this.value)">
+                    <option value="spring">Spring (Mar-May)</option>
+                    <option value="summer">Summer (Jun-Aug)</option>
+                    <option value="autumn">Autumn (Sep-Nov)</option>
+                    <option value="winter">Winter (Dec-Feb)</option>
+                </select>
             </div>
-            <div>
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Waypoint count</label>
-                <input type="range" id="loop-waypoints" min="1" max="6" value="3" step="1" class="costing-slider">
-                <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
-                    <span style="font-size: 12px; color: #86868B;">1</span>
-                    <span id="loop-waypoints-display" class="slider-value">3</span>
-                    <span style="font-size: 12px; color: #86868B;">6</span>
-                </div>
-                <div class="info-text" style="margin-top: 12px;">Waypoints are generated automatically within range to keep total travel time near the target.</div>
+
+            <div class="checkbox-group" style="margin-bottom: 0;">
+                <input type="checkbox" id="auto-season" onchange="toggleAutoSeason(this.checked)">
+                <label for="auto-season">Auto-detect (Weather/Date)</label>
             </div>
+            <div id="weather-status" class="info-text" style="margin-top: 8px; display: none;"></div>
         </div>
 
         <!-- AI Advanced Options (Collapsible) -->
-        <div class="form-group" style="margin-bottom: 16px; padding: 16px; background: #F5F5F7; border-radius: 12px; border: 1px solid #E5E5EA;">
-            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleAIAdvanced()">
-                <label style="color: #1D1D1F; font-weight: 600; font-size: 13px; letter-spacing: -0.2px; margin: 0;">⚙️ AI Advanced Options</label>
-                <span id="ai-advanced-toggle" style="color: #86868B; font-size: 18px; transition: transform 0.2s;">▼</span>
+        <div class="form-group"
+            style="margin-bottom: 16px; padding: 16px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--input-border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                onclick="toggleAIAdvanced()">
+                <label style="color: #1D1D1F; font-weight: 600; font-size: 13px; letter-spacing: -0.2px; margin: 0;">⚙️
+                    AI Advanced Options</label>
+                <span id="ai-advanced-toggle"
+                    style="color: #86868B; font-size: 18px; transition: transform 0.2s;">▼</span>
             </div>
             <div id="ai-advanced-content" style="display: none; margin-top: 12px;">
-                <div style="padding: 10px; background: rgba(0, 122, 255, 0.08); border-radius: 6px; font-size: 12px; color: #1D1D1F; line-height: 1.4; margin-bottom: 10px;">
-                    💡 <strong>What AI adjusts:</strong> All Costing Options (Tree Canopy, Service Roads, Living Streets, etc.) and Supplemental GeoJSON Layers (Street Lights, Open Space, Water Bodies, etc.) based on your natural language prompt.
+                <div
+                    style="padding: 10px; background: rgba(0, 122, 255, 0.08); border-radius: 6px; font-size: 12px; color: #1D1D1F; line-height: 1.4; margin-bottom: 10px;">
+                    💡 <strong>What AI adjusts:</strong> All Costing Options (Tree Canopy, Service Roads, Living
+                    Streets, etc.) and Supplemental GeoJSON Layers (Street Lights, Open Space, Water Bodies, etc.) based
+                    on your natural language prompt.
                 </div>
-                <button id="reset-ai-btn" onclick="resetCostingParameters()" style="width: 100%; background: #F5F5F7; color: #1D1D1F; border: 1px solid #D2D2D7; padding: 10px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.2s ease;">
+                <button id="reset-ai-btn" onclick="resetCostingParameters()"
+                    style="width: 100%; background: #F5F5F7; color: #1D1D1F; border: 1px solid #D2D2D7; padding: 10px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.2s ease;">
                     Reset All Parameters
                 </button>
             </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 24px; padding: 20px; background: #F5F5F7; border-radius: 12px; border: 1px solid #E5E5EA;">
-            <label style="color: #1D1D1F; font-weight: 600; margin-bottom: 20px; display: block; font-size: 15px; letter-spacing: -0.2px;">Costing Options</label>
-            
+        <div class="form-group"
+            style="margin-bottom: 24px; padding: 20px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--input-border);">
+            <label
+                style="color: #1D1D1F; font-weight: 600; margin-bottom: 20px; display: block; font-size: 15px; letter-spacing: -0.2px;">Costing
+                Options</label>
+
             <!-- Tree Canopy Factor -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Tree Canopy Factor</label>
-                <input type="range" id="treecanopy-factor" min="0" max="200" value="100" step="1" class="costing-slider">
+                <label
+                    style="display: block; font-size: 14px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Tree
+                    Canopy Factor</label>
+                <input type="range" id="treecanopy-factor" min="0" max="200" value="100" step="1"
+                    class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0%</span>
                     <span id="treecanopy-value" class="slider-value">100%</span>
@@ -1010,19 +1132,24 @@
 
             <!-- Maneuver Penalty (Turn Penalty) -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Turn Penalty (sec) 🏃</label>
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Turn
+                    Penalty (sec) 🏃</label>
                 <input type="range" id="maneuver-penalty" min="0" max="60" value="15" step="1" class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0s (many turns)</span>
                     <span id="maneuver-penalty-value" class="slider-value">15s</span>
                     <span style="font-size: 12px; color: #86868B;">60s (fewer turns)</span>
                 </div>
-                <div class="info-text" style="margin-top: 8px;">Higher values discourage small turns, creating smoother jogging routes.</div>
+                <div class="info-text" style="margin-top: 8px;">Higher values discourage small turns, creating smoother
+                    jogging routes.</div>
             </div>
 
             <!-- Service Penalty -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Service Road Penalty (sec)</label>
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Service
+                    Road Penalty (sec)</label>
                 <input type="range" id="service-penalty" min="0" max="300" value="0" step="5" class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0s</span>
@@ -1030,10 +1157,12 @@
                     <span style="font-size: 12px; color: #86868B;">300s</span>
                 </div>
             </div>
-            
+
             <!-- Service Factor -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Service Road Cost Factor</label>
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Service
+                    Road Cost Factor</label>
                 <input type="range" id="service-factor" min="0" max="200" value="100" step="1" class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0%</span>
@@ -1041,10 +1170,12 @@
                     <span style="font-size: 12px; color: #86868B;">200%</span>
                 </div>
             </div>
-            
+
             <!-- Use Tracks -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Track Road Cost Factor</label>
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Track
+                    Road Cost Factor</label>
                 <input type="range" id="use-tracks" min="0" max="200" value="100" step="1" class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0%</span>
@@ -1052,21 +1183,26 @@
                     <span style="font-size: 12px; color: #86868B;">200%</span>
                 </div>
             </div>
-            
+
             <!-- Use Living Streets -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Living Street Cost Factor</label>
-                <input type="range" id="use-living-streets" min="0" max="200" value="100" step="1" class="costing-slider">
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Living
+                    Street Cost Factor</label>
+                <input type="range" id="use-living-streets" min="0" max="200" value="100" step="1"
+                    class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0%</span>
                     <span id="use-living-streets-value" class="slider-value">100%</span>
                     <span style="font-size: 12px; color: #86868B;">200%</span>
                 </div>
             </div>
-            
+
             <!-- Closure Factor -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Closure Cost Factor</label>
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Closure
+                    Cost Factor</label>
                 <input type="range" id="closure-factor" min="0" max="200" value="100" step="1" class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0%</span>
@@ -1074,24 +1210,27 @@
                     <span style="font-size: 12px; color: #86868B;">200%</span>
                 </div>
             </div>
-            
+
             <!-- Private Access Penalty -->
             <div style="margin-bottom: 12px;">
-                <label style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Private Access Penalty (sec)</label>
-                <input type="range" id="private-access-penalty" min="0" max="300" value="0" step="5" class="costing-slider">
+                <label
+                    style="display: block; font-size: 13px; color: #1D1D1F; margin-bottom: 8px; font-weight: 500;">Private
+                    Access Penalty (sec)</label>
+                <input type="range" id="private-access-penalty" min="0" max="300" value="0" step="5"
+                    class="costing-slider">
                 <div style="display: flex; justify-content: space-between; margin-top: 12px; align-items: center;">
                     <span style="font-size: 12px; color: #86868B;">0s</span>
                     <span id="private-access-penalty-value" class="slider-value">0s</span>
                     <span style="font-size: 12px; color: #86868B;">300s</span>
                 </div>
             </div>
-            
+
             <div class="checkbox-group" style="margin-top: 16px;">
                 <input type="checkbox" id="auto-update-routes" checked>
                 <label for="auto-update-routes">Auto-update routes on slider change</label>
             </div>
         </div>
-        
+
         <style>
             .costing-slider {
                 width: 100% !important;
@@ -1104,6 +1243,7 @@
                 appearance: none;
                 cursor: pointer;
             }
+
             .costing-slider::-webkit-slider-runnable-track {
                 width: 100%;
                 height: 4px;
@@ -1111,23 +1251,26 @@
                 border-radius: 2px;
                 border: none;
             }
+
             .costing-slider::-webkit-slider-thumb {
                 -webkit-appearance: none;
                 appearance: none;
                 width: 18px;
                 height: 18px;
-                background: #007AFF !important;
+                background: var(--card-bg) !important;
                 border-radius: 50%;
                 cursor: pointer;
-                box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
-                margin-top: -7px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                margin-top: -6.5px;
                 border: none;
                 transition: all 0.2s ease;
             }
+
             .costing-slider::-webkit-slider-thumb:hover {
                 transform: scale(1.1);
                 box-shadow: 0 3px 10px rgba(0, 122, 255, 0.4);
             }
+
             .costing-slider::-moz-range-track {
                 width: 100%;
                 height: 4px;
@@ -1135,24 +1278,25 @@
                 border-radius: 2px;
                 border: none;
             }
+
             .costing-slider::-moz-range-thumb {
                 width: 18px;
                 height: 18px;
-                background: #007AFF !important;
+                background: var(--card-bg) !important;
                 border-radius: 50%;
                 cursor: pointer;
-                border: none;
+                border: 1px solid #ddd;
                 box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
                 transition: all 0.2s ease;
             }
+
             .slider-value {
                 font-size: 15px;
                 font-weight: 600;
                 color: #007AFF;
-                padding: 6px 14px;
-                background: #E8F2FF;
+                padding: 4px 10px;
+                background: var(--accent-color-light);
                 border-radius: 6px;
-                border: 1px solid #007AFF;
                 min-width: 60px;
                 text-align: center;
                 letter-spacing: -0.2px;
@@ -1206,10 +1350,12 @@
             <label for="explore-mode">Explore mode (avoid previously used roads)</label>
         </div>
 
-        <div id="explore-status" style="display: none; padding: 12px; background: #F5F5F7; border-radius: 8px; margin: 12px 0; font-size: 13px;">
+        <div id="explore-status"
+            style="display: none; padding: 12px; background: #F5F5F7; border-radius: 8px; margin: 12px 0; font-size: 13px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <strong style="color: #007AFF;">Explore Mode Active</strong>
-                <button onclick="resetExploreMode(); updateExploreStatus();" style="padding: 4px 12px; font-size: 12px; background: #FF3B30; color: white; border: none; border-radius: 6px; cursor: pointer;">Reset</button>
+                <button onclick="resetExploreMode(); updateExploreStatus();"
+                    style="padding: 4px 12px; font-size: 12px; background: #FF3B30; color: white; border: none; border-radius: 6px; cursor: pointer;">Reset</button>
             </div>
             <div style="color: #86868B;">
                 <span id="explore-edge-count">0</span> waypoints avoided |
@@ -1217,28 +1363,32 @@
             </div>
         </div>
 
-        <div id="geojson-layer-toggle-container" class="checkbox-group" style="flex-direction: column; align-items: flex-start; gap: 8px; display: none;">
+        <div id="geojson-layer-toggle-container" class="checkbox-group"
+            style="flex-direction: column; align-items: flex-start; gap: 8px; display: none;">
             <label style="font-weight: 600; color: #1D1D1F;">Supplemental GeoJSON Layers</label>
-            <div id="geojson-layer-toggle-list" style="width: 100%; display: flex; flex-direction: column; gap: 6px;"></div>
+            <div id="geojson-layer-toggle-list" style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
+            </div>
         </div>
 
-        <button id="clear-btn" onclick="clearRoutes(true)" style="background: #F5F5F7; color: #1D1D1F;">Clear Map</button>
-        <button id="clear-constraints-btn" onclick="clearConstraintPoints()" style="background: #FFF2F2; color: #C62828;">Clear Constraints</button>
+        <button id="clear-btn" onclick="clearRoutes(true)" style="background: #F5F5F7; color: #1D1D1F;">Clear
+            Map</button>
+        <button id="clear-constraints-btn" onclick="clearConstraintPoints()"
+            style="background: rgba(255, 59, 48, 0.1); color: var(--destructive-color);">Clear Constraints</button>
 
         <!-- OpenAI API Key (Bottom Section) -->
-        <div class="form-group" style="margin-top: 16px; padding: 16px; background: #F5F5F7; border-radius: 12px; border: 1px solid #E5E5EA;">
-            <label style="color: #1D1D1F; font-weight: 600; margin-bottom: 8px; display: block; font-size: 13px; letter-spacing: -0.2px;">🔑 OpenAI API Key</label>
-            <input
-                type="password"
-                id="openai-api-key"
-                placeholder="sk-..."
-                style="width: 100%; padding: 10px 14px; border: 1px solid #D2D2D7; border-radius: 8px; font-size: 13px; background: #FFFFFF; color: #1D1D1F; font-family: monospace;"
-            />
+        <div class="form-group"
+            style="margin-top: 16px; padding: 16px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--input-border);">
+            <label
+                style="color: #1D1D1F; font-weight: 600; margin-bottom: 8px; display: block; font-size: 13px; letter-spacing: -0.2px;">🔑
+                OpenAI API Key</label>
+            <input type="password" id="openai-api-key" placeholder="sk-..."
+                style="width: 100%; padding: 10px 14px; border: 1px solid #D2D2D7; border-radius: 8px; font-size: 13px; background: #FFFFFF; color: #1D1D1F; font-family: monospace;" />
             <div style="font-size: 11px; color: #86868B; margin-top: 6px;">Saved locally in your browser</div>
         </div>
 
         <div id="routes-info" class="route-info" style="display: none;">
-            <div id="routes-toggle" class="panel-toggle" role="button" tabindex="0" aria-expanded="true" aria-controls="routes-panel">
+            <div id="routes-toggle" class="panel-toggle" role="button" tabindex="0" aria-expanded="true"
+                aria-controls="routes-panel">
                 <h3>Alternate Routes</h3>
                 <span class="panel-toggle-icon" aria-hidden="true"></span>
             </div>
@@ -1254,9 +1404,10 @@
 
         <button id="toggle-location-panel" class="toggle-panel-btn">Show Location Inputs</button>
         <div id="location-panel" class="collapsible-panel hidden">
-            <div class="form-group" style="margin-bottom: 16px;">
+            <div class="form-group">
                 <label>Server Address</label>
-                <input type="text" id="server-url" value="https://exostotic-shanna-nontheologically.ngrok-free.dev" placeholder="http://localhost:8002 or https://your-ngrok-url.ngrok-free.dev">
+                <input type="text" id="server-url" value="https://exostotic-shanna-nontheologically.ngrok-free.dev"
+                    placeholder="http://localhost:8002 or https://your-ngrok-url.ngrok-free.dev">
                 <div class="info-text">Valhalla service address (localhost or ngrok URL)</div>
             </div>
 
@@ -1289,41 +1440,58 @@
 
         <div id="status" class="status-info">Ready</div>
     </div>
-    <div id="map"></div>
+    </div>
     <div id="ai-overlay" class="ai-overlay" role="region" aria-label="AI Route Preferences">
         <label for="ai-prompt">🤖 AI Route Preferences</label>
         <div class="ai-input-row">
-            <textarea
-                id="ai-prompt"
-                placeholder="e.g., Take me through shaded, quiet streets"
-            ></textarea>
-            <button id="voice-input-btn" class="ai-voice-btn" type="button" onclick="toggleVoiceInput()" title="음성 입력">
-                <svg id="mic-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 19V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <textarea id="ai-prompt" placeholder="e.g., Take me through shaded, quiet streets"></textarea>
+            <button id="voice-input-btn" class="ai-voice-btn" type="button" onclick="toggleVoiceInput()"
+                title="Voice input">
+                <svg id="mic-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z"
+                        stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="#007AFF"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12 19V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
                 </svg>
             </button>
         </div>
         <button id="apply-ai-btn" type="button" onclick="applyAIPromptAndGenerate()">Apply & Generate Routes</button>
         <div id="ai-status"></div>
     </div>
+    <button id="ai-mini-btn" aria-label="Show AI preferences" title="Show AI preferences">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z"
+                stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="#007AFF" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M12 19V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </button>
+    <div id="ai-progress-indicator" role="status" aria-live="polite"></div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
         // Boston landmarks
         const BOSTON_COMMON = [42.3551, -71.0656]; // Boston Common
         const FENWAY_PARK = [42.3467, -71.0972]; // Fenway Park
-        
-        // Initialize map (Boston center)
+
+        // Initialize map
         const map = L.map('map').setView([42.3509, -71.0814], 13);
         const routesPane = map.createPane('routesPane');
         routesPane.style.zIndex = 700;
         routesPane.style.pointerEvents = 'none';
+        window.APP_CONFIG = window.APP_CONFIG || {};
+        let setSidebarState = null;
+        let getSidebarState = null;
+        let sidebarState = 'hidden';
         (function initParameterDiffPanel() {
             const panel = document.createElement('div');
             panel.id = 'parameter-diff-panel';
@@ -1335,7 +1503,7 @@
                 mapContainer.appendChild(panel);
             }
         })();
-        
+
         // CartoDB Positron - clean and simple style
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -1346,12 +1514,15 @@
         let originMarker = null;
         let destMarker = null;
 
-        const ROUTE_THEME_COLOR = '#C62828';
+        const ROUTE_THEME_COLOR = '#0B8A34';
         const DEST_PIN_SIZE_PX = 32;
         const DEST_PIN_INNER_PX = Math.round(DEST_PIN_SIZE_PX * 0.38);
         document.documentElement.style.setProperty('--route-theme-color', ROUTE_THEME_COLOR);
         document.documentElement.style.setProperty('--dest-pin-size', `${DEST_PIN_SIZE_PX}px`);
         document.documentElement.style.setProperty('--dest-pin-inner', `${DEST_PIN_INNER_PX}px`);
+        const aiOverlayState = {
+            minimized: false
+        };
 
         const destinationIcon = L.divIcon({
             className: 'destination-pin-wrapper',
@@ -1370,34 +1541,63 @@
             popupAnchor: [0, -10],
             html: ''
         });
-        
+
+        // Device helpers (edit UUIDs for your Arduino/BLE firmware)
+        const BLE_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';
+        const BLE_CHARACTERISTIC_UUID = '12345678-1234-5678-1234-56789abcdef1';
+        const BLE_TARGET_NAMES = ['HapticNav-Right', 'HapticNav-Left'];
+        const bleTextEncoder = new TextEncoder();
+        const bleConnections = new Map(); // key: canonical name -> {device, characteristic, label}
+        const getBleTargets = (keyFilter = null) => Array.from(bleConnections.entries())
+            .filter(([key]) => keyFilter ? key === keyFilter : true)
+            .map(([, conn]) => conn.characteristic)
+            .filter(Boolean);
+
+        const canonicalBleName = (name) => {
+            const n = (name || '').trim().toLowerCase();
+            if (n.includes('left')) return 'left';
+            if (n.includes('right')) return 'right';
+            return n || 'unknown';
+        };
+        const findConnectionByRole = (role) => {
+            const canonicalRole = canonicalBleName(role);
+            for (const [key, conn] of bleConnections.entries()) {
+                const label = (conn.label || '').toLowerCase();
+                if (key === canonicalRole) return conn;
+                if (canonicalRole && label.includes(canonicalRole)) return conn;
+            }
+            return null;
+        };
+        let gpsWatchId = null;
+        let lastGpsPosition = null;
+
         // Initialize markers
         function initializeMarkers() {
             // Origin marker (Boston Common)
-            originMarker = L.marker(BOSTON_COMMON, {draggable: true, icon: originIcon}).addTo(map);
+            originMarker = L.marker(BOSTON_COMMON, { draggable: true, icon: originIcon }).addTo(map);
             elevateMarker(originMarker);
             originMarker.bindPopup('Origin: Boston Common').openPopup();
-            originMarker.on('dragend', function() {
+            originMarker.on('dragend', function () {
                 const pos = originMarker.getLatLng();
                 document.getElementById('origin-lat').value = pos.lat.toFixed(6);
                 document.getElementById('origin-lon').value = pos.lng.toFixed(6);
             });
-            
+
             // Destination marker (Fenway Park)
-            destMarker = L.marker(FENWAY_PARK, {draggable: true, icon: destinationIcon}).addTo(map);
+            destMarker = L.marker(FENWAY_PARK, { draggable: true, icon: destinationIcon }).addTo(map);
             elevateMarker(destMarker);
             destMarker.bindPopup('Destination: Fenway Park').openPopup();
-            destMarker.on('dragend', function() {
+            destMarker.on('dragend', function () {
                 const pos = destMarker.getLatLng();
                 document.getElementById('dest-lat').value = pos.lat.toFixed(6);
                 document.getElementById('dest-lon').value = pos.lng.toFixed(6);
             });
-            
+
             // Fit map bounds to show both markers
             const group = new L.featureGroup([originMarker, destMarker]);
-            map.fitBounds(group.getBounds(), {padding: [50, 50]});
+            map.fitBounds(group.getBounds(), { padding: [50, 50] });
         }
-        
+
         // Initialize markers when map is ready
         map.whenReady(initializeMarkers);
         let routeLayers = [];
@@ -1414,14 +1614,18 @@
         let routesPanelVisible = true;
         let spacePressed = false;
         const geoJsonHoverLayers = new Set();
+        const TURN_ALERT_DISTANCE_METERS = 35; // default trigger radius
+        const TURN_ALERT_COOLDOWN_MS = 12000; // prevent rapid repeats on GPS jitter
+        let turnAlertQueue = [];
+        let lastTurnAlertTime = 0;
         const parameterMetadata = {
-            'treecanopy-factor': {label: 'Tree Canopy Factor', default: 100},
-            'service-penalty': {label: 'Service Penalty', default: 0},
-            'service-factor': {label: 'Service Road Cost Factor', default: 100},
-            'use-tracks': {label: 'Track Road Cost Factor', default: 100},
-            'use-living-streets': {label: 'Living Street Cost Factor', default: 100},
-            'closure-factor': {label: 'Closure Cost Factor', default: 100},
-            'private-access-penalty': {label: 'Private Access Penalty', default: 0}
+            'treecanopy-factor': { label: 'Tree Canopy Factor', default: 100 },
+            'service-penalty': { label: 'Service Penalty', default: 0 },
+            'service-factor': { label: 'Service Road Cost Factor', default: 100 },
+            'use-tracks': { label: 'Track Road Cost Factor', default: 100 },
+            'use-living-streets': { label: 'Living Street Cost Factor', default: 100 },
+            'closure-factor': { label: 'Closure Cost Factor', default: 100 },
+            'private-access-penalty': { label: 'Private Access Penalty', default: 0 }
         };
 
         // Explore mode: track waypoints from previous routes
@@ -1702,7 +1906,7 @@
         }
 
         // Left-click to set origin
-        map.on('click', function(e) {
+        map.on('click', function (e) {
             const lat = e.latlng.lat;
             const lon = e.latlng.lng;
 
@@ -1710,14 +1914,14 @@
                 addConstraintPoint(lat, lon, 'avoid');
                 return;
             }
-            
+
             // Remove existing origin marker
-            if (originMarker) {
+            if (originMarker && map.hasLayer(originMarker)) {
                 map.removeLayer(originMarker);
             }
-            
+
             // Create new origin marker
-            originMarker = L.marker([lat, lon], {draggable: true, icon: originIcon}).addTo(map);
+            originMarker = L.marker([lat, lon], { draggable: true, icon: originIcon }).addTo(map);
             elevateMarker(originMarker);
             originMarker.bindPopup('Origin').openPopup();
             document.getElementById('origin-lat').value = lat.toFixed(6);
@@ -1728,16 +1932,16 @@
                 document.getElementById('dest-lat').value = lat.toFixed(6);
                 document.getElementById('dest-lon').value = lon.toFixed(6);
             }
-            
-            originMarker.on('dragend', function() {
+
+            originMarker.on('dragend', function () {
                 const pos = originMarker.getLatLng();
                 document.getElementById('origin-lat').value = pos.lat.toFixed(6);
                 document.getElementById('origin-lon').value = pos.lng.toFixed(6);
             });
         });
-        
+
         // Right-click to set destination
-        map.on('contextmenu', function(e) {
+        map.on('contextmenu', function (e) {
             e.originalEvent.preventDefault(); // Prevent default context menu
             const lat = e.latlng.lat;
             const lon = e.latlng.lng;
@@ -1752,20 +1956,20 @@
                 updateStatus('Loop mode enabled: destination stays at origin.', 'loading');
                 return;
             }
-            
+
             // Remove existing destination marker
-            if (destMarker) {
+            if (destMarker && map.hasLayer(destMarker)) {
                 map.removeLayer(destMarker);
             }
-            
+
             // Create new destination marker
-            destMarker = L.marker([lat, lon], {draggable: true, icon: destinationIcon}).addTo(map);
+            destMarker = L.marker([lat, lon], { draggable: true, icon: destinationIcon }).addTo(map);
             elevateMarker(destMarker);
             destMarker.bindPopup('Destination').openPopup();
             document.getElementById('dest-lat').value = lat.toFixed(6);
             document.getElementById('dest-lon').value = lon.toFixed(6);
-            
-            destMarker.on('dragend', function() {
+
+            destMarker.on('dragend', function () {
                 const pos = destMarker.getLatLng();
                 document.getElementById('dest-lat').value = pos.lat.toFixed(6);
                 document.getElementById('dest-lon').value = pos.lng.toFixed(6);
@@ -1920,6 +2124,338 @@
                 shortSegmentRatio: shortRatio,
                 segmentCount: segmentLengths.length
             };
+        }
+
+        function setGpsStatus(message, level = 'info') {
+            const el = document.getElementById('gps-status');
+            if (el) {
+                el.textContent = message;
+            }
+            if (level === 'error') {
+                updateStatus(message, 'error');
+            }
+        }
+
+        function setBleStatus(message, level = 'info') {
+            const el = document.getElementById('ble-status');
+            if (el) {
+                el.textContent = message;
+            }
+            if (level === 'error') {
+                updateStatus(message, 'error');
+            }
+        }
+        function summarizeBleStatus() {
+            const names = Array.from(bleConnections.keys());
+            if (!names.length) return 'BLE idle';
+            return `Connected: ${names.join(', ')}`;
+        }
+
+        async function sendCommandToDevice(deviceName, command, label) {
+            const conn = findConnectionByRole(deviceName);
+            if (!conn || !conn.characteristic) {
+                setBleStatus(`${deviceName} not connected`, 'error');
+                return;
+            }
+            try {
+                await conn.characteristic.writeValue(bleTextEncoder.encode(command));
+                setBleStatus(`${label} → ${conn.label}`);
+            } catch (error) {
+                setBleStatus(`BLE write failed (${conn.label}): ${error.message}`, 'error');
+            }
+        }
+
+        async function broadcastBlePayload(payload, label) {
+            const targets = getBleTargets();
+            if (!targets.length) {
+                setBleStatus('Connect BLE before sending.', 'error');
+                return { sent: 0, total: 0 };
+            }
+            const results = await Promise.allSettled(
+                targets.map(ch => ch.writeValue(payload))
+            );
+            const ok = results.filter(r => r.status === 'fulfilled').length;
+            const total = results.length;
+            const failed = total - ok;
+            const suffix = failed ? ` (failed ${failed})` : '';
+            setBleStatus(`${label} to ${ok}/${total} devices${suffix}.`);
+            return { sent: ok, total };
+        }
+
+        function updateOriginFromCoordinates(lat, lon, sourceLabel = 'GPS') {
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                setGpsStatus('Unable to read location.', 'error');
+                return;
+            }
+
+            document.getElementById('origin-lat').value = lat.toFixed(6);
+            document.getElementById('origin-lon').value = lon.toFixed(6);
+
+            const loopCheckbox = document.getElementById('loop-mode');
+            if (loopCheckbox && loopCheckbox.checked) {
+                document.getElementById('dest-lat').value = lat.toFixed(6);
+                document.getElementById('dest-lon').value = lon.toFixed(6);
+            }
+
+            if (originMarker) {
+                map.removeLayer(originMarker);
+            }
+            originMarker = L.marker([lat, lon], { draggable: true, icon: originIcon }).addTo(map);
+            elevateMarker(originMarker);
+            originMarker.bindPopup(`${sourceLabel} location`).openPopup();
+            originMarker.on('dragend', function () {
+                const pos = originMarker.getLatLng();
+                document.getElementById('origin-lat').value = pos.lat.toFixed(6);
+                document.getElementById('origin-lon').value = pos.lng.toFixed(6);
+            });
+        }
+
+        function startGpsTracking() {
+            if (!('geolocation' in navigator)) {
+                setGpsStatus('GPS is not available in this browser.', 'error');
+                return;
+            }
+            if (gpsWatchId) {
+                setGpsStatus('GPS is active.');
+                return;
+            }
+            setGpsStatus('Waiting for GPS...');
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    lastGpsPosition = pos.coords;
+                    const { latitude, longitude, accuracy } = pos.coords;
+                    updateOriginFromCoordinates(latitude, longitude, 'GPS');
+                    const accText = Number.isFinite(accuracy) ? `+/-${Math.round(accuracy)}m` : 'unknown';
+                    setGpsStatus(`GPS OK: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (${accText})`);
+                    maybeTriggerTurnHaptics(latitude, longitude, accuracy);
+                },
+                (err) => {
+                    setGpsStatus(`GPS error: ${err.message}`, 'error');
+                    gpsWatchId = null;
+                },
+                { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
+            );
+        }
+
+        function stopGpsTracking() {
+            if (gpsWatchId && navigator.geolocation?.clearWatch) {
+                navigator.geolocation.clearWatch(gpsWatchId);
+            }
+            gpsWatchId = null;
+            lastGpsPosition = null;
+            setGpsStatus('GPS stopped');
+        }
+
+        function resetTurnAlerts() {
+            turnAlertQueue = [];
+            lastTurnAlertTime = 0;
+        }
+
+        function inferTurnDirection(maneuver) {
+            const stringCandidates = [
+                maneuver.begin_relative_direction,
+                maneuver.relative_direction,
+                maneuver.turn_type,
+                maneuver.type_string,
+                maneuver.instruction,
+                maneuver.verbal_transition_alert_instruction,
+                maneuver.verbal_pre_transition_instruction,
+                maneuver.verbal_post_transition_instruction
+            ];
+
+            for (const candidate of stringCandidates) {
+                if (typeof candidate !== 'string') continue;
+                const lower = candidate.toLowerCase();
+                if (lower.includes('left')) return 'left';
+                if (lower.includes('right')) return 'right';
+            }
+            return null;
+        }
+
+        function extractTurnAlertsFromRoute(route) {
+            const alerts = [];
+            if (!route || !route.legs) return alerts;
+
+            route.legs.forEach((leg, legIndex) => {
+                if (!leg?.maneuvers || !Array.isArray(leg.maneuvers)) return;
+                leg.maneuvers.forEach((maneuver, mIndex) => {
+                    // Skip explicit start/end maneuvers
+                    if (mIndex === 0 || mIndex === leg.maneuvers.length - 1) return;
+                    const direction = inferTurnDirection(maneuver);
+                    if (!direction) return;
+
+                    let lat, lon;
+                    if (Number.isFinite(maneuver.lat) && Number.isFinite(maneuver.lon)) {
+                        lat = maneuver.lat;
+                        lon = maneuver.lon;
+                    } else if (maneuver.start_point && Number.isFinite(maneuver.start_point.lat) && Number.isFinite(maneuver.start_point.lon)) {
+                        lat = maneuver.start_point.lat;
+                        lon = maneuver.start_point.lon;
+                    }
+
+                    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+                    alerts.push({
+                        lat,
+                        lon,
+                        direction,
+                        legIndex,
+                        maneuverIndex: mIndex,
+                        triggered: false
+                    });
+                });
+            });
+            return alerts;
+        }
+
+        function prepareTurnAlerts(routes) {
+            resetTurnAlerts();
+            if (!routes || !routes.length) return;
+            const primaryRoute = routes[0];
+            turnAlertQueue = extractTurnAlertsFromRoute(primaryRoute);
+            if (turnAlertQueue.length) {
+                console.log(`Turn alerts armed for ${turnAlertQueue.length} maneuvers.`);
+            }
+        }
+
+        function triggerTurnHaptics(direction, distanceMeters) {
+            const pattern = direction === 'left' ? [220] : [220, 140, 220];
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+
+            const targetKey = direction === 'left' ? 'left' : 'right';
+            const targets = getBleTargets(targetKey);
+            if (targets.length) {
+                const command = direction === 'left' ? 'VIB_LEFT' : 'VIB_RIGHT';
+                targets.forEach((characteristic) => {
+                    characteristic.writeValue(bleTextEncoder.encode(command)).catch((error) => {
+                        console.warn('BLE haptic send failed:', error);
+                    });
+                });
+            }
+
+            const dirLabel = direction === 'left' ? '왼쪽' : '오른쪽';
+            const distanceLabel = Number.isFinite(distanceMeters) ? `${Math.round(distanceMeters)}m` : 'nearby';
+            setGpsStatus(`Turn ${dirLabel} in ${distanceLabel} – sent haptic cue`);
+        }
+
+        function maybeTriggerTurnHaptics(lat, lon, accuracyMeters) {
+            if (!turnAlertQueue.length) return;
+            const next = turnAlertQueue.find(alert => !alert.triggered);
+            if (!next) return;
+
+            const distance = haversineDistanceMeters(lat, lon, next.lat, next.lon);
+            const effectiveRadius = Math.max(TURN_ALERT_DISTANCE_METERS, Number.isFinite(accuracyMeters) ? accuracyMeters * 1.5 : 0);
+            if (distance > effectiveRadius) return;
+
+            const now = Date.now();
+            if (now - lastTurnAlertTime < TURN_ALERT_COOLDOWN_MS) return;
+
+            next.triggered = true;
+            lastTurnAlertTime = now;
+            triggerTurnHaptics(next.direction, distance);
+        }
+
+        function onBleDisconnected(event) {
+            const device = event?.target;
+            let removed = false;
+            if (device?.id) {
+                for (const [key, conn] of bleConnections.entries()) {
+                    if (conn.device?.id === device.id) {
+                        bleConnections.delete(key);
+                        removed = true;
+                        break;
+                    }
+                }
+            }
+            if (!removed && device?.name) {
+                const key = canonicalBleName(device.name);
+                if (bleConnections.has(key)) {
+                    bleConnections.delete(key);
+                }
+            }
+            const status = summarizeBleStatus();
+            setBleStatus(status);
+        }
+
+        async function connectBleDevice() {
+            if (!navigator.bluetooth) {
+                setBleStatus('Web Bluetooth is not supported in this browser.', 'error');
+                return;
+            }
+            if (BLE_SERVICE_UUID.includes('replace-with')) {
+                setBleStatus('Set BLE service UUID in code.', 'error');
+                return;
+            }
+            try {
+                // Prompt user to pick any HapticNav-* device that is not yet connected
+                setBleStatus('Scanning for HapticNav devices...');
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'HapticNav-' }],
+                    optionalServices: [BLE_SERVICE_UUID]
+                });
+
+                const name = device.name || 'Unknown';
+                const key = canonicalBleName(name);
+                if (findConnectionByRole(key)) {
+                    setBleStatus(`Already connected to ${name}`);
+                    return;
+                }
+                if (key !== 'left' && key !== 'right') {
+                    setBleStatus(`Unexpected device "${name}". Please select HapticNav-Left or HapticNav-Right.`, 'error');
+                    return;
+                }
+
+                device.addEventListener('gattserverdisconnected', onBleDisconnected);
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+                const characteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
+                bleConnections.set(key, { device, characteristic, label: name });
+                const remaining = BLE_TARGET_NAMES.filter(n => !findConnectionByRole(n));
+                const status = remaining.length
+                    ? `${summarizeBleStatus()} (connect ${remaining.join(' / ')} next)`
+                    : summarizeBleStatus();
+                setBleStatus(status);
+
+            } catch (error) {
+                setBleStatus(`BLE connect failed: ${error.message}`, 'error');
+            }
+        }
+
+        function disconnectBleDevice() {
+            try {
+                bleConnections.forEach(({ device }) => {
+                    if (device?.gatt?.connected) {
+                        device.gatt.disconnect();
+                    }
+                });
+                bleConnections.clear();
+                setBleStatus('BLE disconnected.');
+            } catch (error) {
+                setBleStatus(`BLE disconnect failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function sendBleTestPacket() {
+            await broadcastBlePayload(bleTextEncoder.encode('PING'), 'BLE write sent: "PING"');
+        }
+
+        async function sendBleCommandFromUI() {
+            const commandInput = document.getElementById('ble-command-input');
+            if (!commandInput) {
+                setBleStatus('Command input not available.', 'error');
+                return;
+            }
+
+            const commandText = commandInput.value;
+            if (!commandText.trim()) {
+                setBleStatus('Enter a command before sending.', 'error');
+                commandInput.focus();
+                return;
+            }
+            const payload = bleTextEncoder.encode(commandText);
+            await broadcastBlePayload(payload, `BLE write sent (${payload.length} bytes)`);
         }
 
         function computeTreeCanopyScore(properties = {}) {
@@ -2109,8 +2645,8 @@
                 removeConstraintPoint(id);
             });
 
-            constraintMarkers.push({id, marker, type});
-            const entry = {id, lat, lon};
+            constraintMarkers.push({ id, marker, type });
+            const entry = { id, lat, lon };
             if (type === 'avoid') {
                 avoidConstraintPoints.push(entry);
                 updateStatus('Added avoid constraint — double-click - to remove.', 'loading');
@@ -2123,7 +2659,7 @@
         function removeConstraintPoint(id) {
             const markerIndex = constraintMarkers.findIndex(entry => entry.id === id);
             if (markerIndex !== -1) {
-                const {marker, type} = constraintMarkers[markerIndex];
+                const { marker, type } = constraintMarkers[markerIndex];
                 if (marker) {
                     map.removeLayer(marker);
                 }
@@ -2496,7 +3032,7 @@
 
             // Use weighted selection if we have attraction points with high bias
             const useWeightedSelection = filteredAttractionPoints.length > 0 &&
-                                        (options.attractionBiasStrength || 0) > 0.3;
+                (options.attractionBiasStrength || 0) > 0.3;
 
             if (useWeightedSelection) {
                 // Weighted selection: pick waypoints based on parameter preferences
@@ -2598,8 +3134,8 @@
                     if (!tooClose) {
                         // Add jitter to the selected point
                         const jitterAmount = LOOP_ATTRACTION_JITTER_METERS *
-                                           (selected.point.jitterScale || 1) *
-                                           (selected.point.priority ? 0.45 : 1);
+                            (selected.point.jitterScale || 1) *
+                            (selected.point.priority ? 0.45 : 1);
                         const jittered = jitterPointAround(
                             selected.point.lat,
                             selected.point.lon,
@@ -2781,7 +3317,7 @@
         }
 
         // Debug function for explore mode (available in console)
-        window.debugExploreMode = function() {
+        window.debugExploreMode = function () {
             console.log('=== EXPLORE MODE DEBUG ===');
             console.log('Enabled:', document.getElementById('explore-mode')?.checked);
             console.log('Total edges:', exploredEdges.length);
@@ -2812,12 +3348,12 @@
                     acc.time += leg.summary.time || 0;
                 }
                 return acc;
-            }, {length: 0, time: 0});
+            }, { length: 0, time: 0 });
         }
 
         async function fetchRoutesFromServer(serverUrl, requestBody, context = {}) {
             const { originLat, originLon, destLat, destLon } = context;
-            
+
             // Timeout helper
             const fetchWithTimeout = (url, options = {}, timeoutMs = 10000) => {
                 const controller = new AbortController();
@@ -2865,7 +3401,7 @@
                 if (errorText) {
                     try {
                         const errorJson = JSON.parse(errorText);
-                        if (errorJson.error_code === 171 || 
+                        if (errorJson.error_code === 171 ||
                             (errorJson.error && errorJson.error.includes("No suitable edges"))) {
                             let locationDetails = '';
                             let serverInfo = '';
@@ -3166,10 +3702,10 @@
                 destMarker = null;
             }
 
-            originMarker = L.marker([originLat, originLon], {draggable: true, icon: originIcon}).addTo(map);
+            originMarker = L.marker([originLat, originLon], { draggable: true, icon: originIcon }).addTo(map);
             elevateMarker(originMarker);
             originMarker.bindPopup('Origin').openPopup();
-            originMarker.on('dragend', function() {
+            originMarker.on('dragend', function () {
                 const pos = originMarker.getLatLng();
                 document.getElementById('origin-lat').value = pos.lat.toFixed(6);
                 document.getElementById('origin-lon').value = pos.lng.toFixed(6);
@@ -3178,12 +3714,12 @@
                     document.getElementById('dest-lon').value = pos.lng.toFixed(6);
                 }
             });
-            
+
             if (!loopMode) {
-                destMarker = L.marker([destLat, destLon], {draggable: true, icon: destinationIcon}).addTo(map);
+                destMarker = L.marker([destLat, destLon], { draggable: true, icon: destinationIcon }).addTo(map);
                 elevateMarker(destMarker);
                 destMarker.bindPopup('Destination').openPopup();
-                destMarker.on('dragend', function() {
+                destMarker.on('dragend', function () {
                     const pos = destMarker.getLatLng();
                     document.getElementById('dest-lat').value = pos.lat.toFixed(6);
                     document.getElementById('dest-lon').value = pos.lng.toFixed(6);
@@ -3222,7 +3758,7 @@
                         });
                     }
                 });
-                
+
                 // Check explore mode once at the beginning
                 const exploreModeEnabled = document.getElementById('explore-mode').checked;
 
@@ -3406,6 +3942,7 @@
                         statusMessage += ` 🗺️ Explore: ${exploredEdges.length} edges avoided`;
                     }
                     updateStatus(statusMessage, 'success');
+                    prepareTurnAlerts(routes);
                 } else {
                     const preferredLocations = buildPreferredRouteLocations(
                         originLat,
@@ -3463,6 +4000,7 @@
                         statusMessage += ` 🗺️ Explore: ${exploredEdges.length} edges avoided (${exploreRouteHistory.length} routes tracked)`;
                     }
                     updateStatus(statusMessage, 'success');
+                    prepareTurnAlerts(routes);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -3552,7 +4090,7 @@
                 routeItem.className = 'route-item';
                 routeItem.style.borderLeft = `4px solid ${color}`;
                 if (index === 0) routeItem.classList.add('active');
-                
+
                 routeItem.innerHTML = `
                     <h3>${routeName}</h3>
                     <p>Distance: ${distance} km</p>
@@ -3562,20 +4100,20 @@
                     <p>Smoothness penalty: ${smoothLabel}</p>
                 `;
 
-                routeItem.onclick = function() {
+                routeItem.onclick = function () {
                     // Highlight active route
                     document.querySelectorAll('.route-item').forEach(item => {
                         item.classList.remove('active');
                     });
                     routeItem.classList.add('active');
-                    
+
                     // Make other routes semi-transparent
                     routeLayers.forEach((layer, i) => {
                         if (i === index) {
-                            layer.setStyle({opacity: 0.8, weight: 5});
-                            map.fitBounds(layer.getBounds(), {padding: [50, 50]});
+                            layer.setStyle({ opacity: 0.8, weight: 5 });
+                            map.fitBounds(layer.getBounds(), { padding: [50, 50] });
                         } else {
-                            layer.setStyle({opacity: 0.2, weight: 3});
+                            layer.setStyle({ opacity: 0.2, weight: 3 });
                         }
                     });
                 };
@@ -3598,7 +4136,7 @@
             // Adjust map bounds
             if (routeLayers.length > 0) {
                 const group = new L.featureGroup(routeLayers);
-                map.fitBounds(group.getBounds(), {padding: [50, 50]});
+                map.fitBounds(group.getBounds(), { padding: [50, 50] });
             }
         }
 
@@ -3676,6 +4214,7 @@
                 isRecording = false;
                 updateVoiceButtonState(false);
                 showAIStatus('🔄 Transcribing...', 'loading');
+                collapseAIOverlay();
             }
         }
 
@@ -3718,6 +4257,7 @@
                 // Set transcript to textarea
                 const promptTextarea = document.getElementById('ai-prompt');
                 promptTextarea.value = transcript;
+                applyAIPromptAndGenerate();
 
                 showAIStatus('✓ Voice recognition complete!', 'success');
                 setTimeout(() => {
@@ -3774,6 +4314,7 @@
                 const parameters = await processPromptWithGPT(prompt, apiKey);
                 applyParametersToUI(parameters);
                 showAIStatus('✓ Settings applied! Generating routes...', 'success');
+                collapseAIOverlay();
 
                 // Always generate routes after applying AI settings
                 setTimeout(() => {
@@ -3797,6 +4338,24 @@
                 content.style.display = 'none';
                 toggle.style.transform = 'rotate(0deg)';
             }
+        }
+
+        function collapseAIOverlay() {
+            const overlay = document.getElementById('ai-overlay');
+            const miniBtn = document.getElementById('ai-mini-btn');
+            if (!overlay || !miniBtn) return;
+            overlay.classList.add('collapsed');
+            miniBtn.style.display = 'flex';
+            aiOverlayState.minimized = true;
+        }
+
+        function expandAIOverlay() {
+            const overlay = document.getElementById('ai-overlay');
+            const miniBtn = document.getElementById('ai-mini-btn');
+            if (!overlay || !miniBtn) return;
+            overlay.classList.remove('collapsed');
+            miniBtn.style.display = 'none';
+            aiOverlayState.minimized = false;
         }
 
         async function processPromptWithGPT(prompt, apiKey) {
@@ -3877,7 +4436,7 @@ Only respond with valid JSON, no explanation.`;
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error?.message || 'API 요청 실패');
+                throw new Error(error.error?.message || 'API request failed');
             }
 
             const data = await response.json();
@@ -4014,6 +4573,7 @@ Only respond with valid JSON, no explanation.`;
             routeLayers.forEach(layer => map.removeLayer(layer));
             routeLayers = [];
             routesData = [];
+            resetTurnAlerts();
             // Remove tree canopy dots
             treeCanopyDots.forEach(dot => {
                 if (dot && map.hasLayer && map.hasLayer(dot)) {
@@ -4042,8 +4602,8 @@ Only respond with valid JSON, no explanation.`;
         function updateStatus(message, type) {
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
-            
-            switch(type) {
+
+            switch (type) {
                 case 'success':
                     statusDiv.style.background = '#E8F5E9';
                     statusDiv.style.color = '#2E7D32';
@@ -4067,13 +4627,13 @@ Only respond with valid JSON, no explanation.`;
         }
 
         // Toggle show all routes
-        document.getElementById('show-all').addEventListener('change', function() {
+        document.getElementById('show-all').addEventListener('change', function () {
             const showAll = this.checked;
             routeLayers.forEach((layer, index) => {
                 if (showAll || index === 0) {
-                    layer.setStyle({opacity: 0.8});
+                    layer.setStyle({ opacity: 0.8 });
                 } else {
-                    layer.setStyle({opacity: 0.3});
+                    layer.setStyle({ opacity: 0.3 });
                 }
             });
         });
@@ -4098,7 +4658,7 @@ Only respond with valid JSON, no explanation.`;
 
                 if (slider && valueDisplay) {
                     updateSliderValue(slider, valueDisplay, suffix, isTime);
-                    slider.addEventListener('input', function() {
+                    slider.addEventListener('input', function () {
                         updateSliderValue(this, valueDisplay, suffix, isTime);
 
                         const autoUpdate = document.getElementById('auto-update-routes');
@@ -4162,12 +4722,8 @@ Only respond with valid JSON, no explanation.`;
             }
 
             container.style.display = 'block';
-            const header = document.createElement('div');
-            header.style.marginBottom = '16px';
-            header.innerHTML =
-                '<label style="display:block;font-size:13px;color:#1D1D1F;margin-bottom:4px;font-weight:500;">Supplemental GeoJSON Layers</label>' +
-                '<div class="info-text">Adjust weights for each uploaded dataset (0-200%).</div>';
-            container.appendChild(header);
+            // Header removed as per user request
+            // const header = document.createElement('div'); ...
 
             geoJsonLayerConfig.forEach((layer, index) => {
                 const sliderId = `geo-layer-${index}`;
@@ -4179,7 +4735,7 @@ Only respond with valid JSON, no explanation.`;
                         : (typeof layer.default_factor === 'number' ? layer.default_factor : 1.0);
                 const defaultPercent = Math.round(baseWeight * 100);
                 const clamped = Math.min(Math.max(defaultPercent, 0), 200);
-                parameterMetadata[sliderId] = {label, default: clamped};
+                parameterMetadata[sliderId] = { label, default: clamped };
 
                 const row = document.createElement('div');
                 row.className = 'geojson-slider-row';
@@ -4274,7 +4830,7 @@ Only respond with valid JSON, no explanation.`;
             label.style.flex = '1';
             label.style.cursor = 'pointer';
 
-            checkbox.addEventListener('change', function() {
+            checkbox.addEventListener('change', function () {
                 toggleGeoJsonLayer(index, this.checked);
             });
 
@@ -4364,7 +4920,7 @@ Only respond with valid JSON, no explanation.`;
             const layer = geoJsonLayerConfig[index] || {};
             const override = getLayerOverride(layer);
             if (override) {
-                return {...override};
+                return { ...override };
             }
             if (layerMatchesKeywords(layer, TREE_LAYER_KEYWORDS)) {
                 return {
@@ -4616,14 +5172,14 @@ Only respond with valid JSON, no explanation.`;
                 overlayScalingMap.delete(index);
                 return;
             }
-            overlayScalingMap.set(index, {layer: layerGroup, palette});
+            overlayScalingMap.set(index, { layer: layerGroup, palette });
             applyOverlayScaling();
         }
 
         function applyOverlayScaling() {
             if (!overlayScalingMap.size) return;
             const zoom = map.getZoom();
-            overlayScalingMap.forEach(({layer, palette}) => {
+            overlayScalingMap.forEach(({ layer, palette }) => {
                 const radius = getPalettePointRadius(palette, zoom);
                 layer.eachLayer(entry => {
                     if (typeof entry.setRadius === 'function') {
@@ -4653,7 +5209,7 @@ Only respond with valid JSON, no explanation.`;
             const displayName = getGeoJsonLayerDisplayName(layerConfig, index);
             let overlayState = geoJsonOverlayLayers[index];
             if (!overlayState) {
-                overlayState = geoJsonOverlayLayers[index] = {layer: null, loading: null};
+                overlayState = geoJsonOverlayLayers[index] = { layer: null, loading: null };
             }
 
             if (!show) {
@@ -4667,7 +5223,7 @@ Only respond with valid JSON, no explanation.`;
             if (overlayState.layer) {
                 overlayState.layer.addTo(map);
                 if (overlayState.layer.getBounds && overlayState.layer.getBounds().isValid()) {
-                    map.fitBounds(overlayState.layer.getBounds(), {padding: [40, 40]});
+                    map.fitBounds(overlayState.layer.getBounds(), { padding: [40, 40] });
                 }
                 const palette = getSupplementalLayerPalette(index);
                 registerOverlayScaling(index, overlayState.layer, palette);
@@ -4688,7 +5244,7 @@ Only respond with valid JSON, no explanation.`;
                     overlayState.layer = leafletLayer;
                     leafletLayer.addTo(map);
                     if (leafletLayer.getBounds && leafletLayer.getBounds().isValid()) {
-                        map.fitBounds(leafletLayer.getBounds(), {padding: [40, 40]});
+                        map.fitBounds(leafletLayer.getBounds(), { padding: [40, 40] });
                     }
                     registerOverlayScaling(index, leafletLayer, palette);
                     updateStatus(`${displayName} layer ready`, 'success');
@@ -4872,7 +5428,7 @@ Only respond with valid JSON, no explanation.`;
                 }
             });
         }
-        
+
         // Slider value update helper function
         function updateSliderValue(slider, valueDisplay, suffix, isTime) {
             const value = parseFloat(slider.value);
@@ -4883,22 +5439,161 @@ Only respond with valid JSON, no explanation.`;
             }
         }
 
+        function initSidebarInteraction() {
+            const sidebar = document.getElementById('sidebar');
+            const handle = document.getElementById('sidebar-handle');
+            const content = document.getElementById('sidebar-content');
+            const mainButton = document.getElementById('generate-btn');
+            if (!sidebar || !handle || !content || !mainButton) return;
+
+            const peekHeight = 80;
+            const midHeight = window.innerHeight * 0.5;
+            const fullHeight = window.innerHeight - 60;
+
+            let startY, startHeight;
+
+            setSidebarState = (state, animate = true) => {
+                const isFullscreen = state === 'fullscreen';
+                sidebar.style.transition = animate ? 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+                mainButton.style.transition = animate ? 'bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+                document.body.classList.toggle('panel-fullscreen', isFullscreen);
+                sidebar.style.maxHeight = isFullscreen ? '100vh' : 'calc(100% - 60px)';
+                sidebar.style.height = isFullscreen ? '100vh' : '';
+
+                if (state === 'hidden') {
+                    sidebar.style.transform = 'translateY(100%)';
+                    mainButton.style.bottom = '24px';
+                } else if (state === 'peek') {
+                    sidebar.style.transform = `translateY(calc(100% - ${peekHeight}px))`;
+                    mainButton.style.bottom = `${peekHeight + 20}px`;
+                } else if (state === 'mid') {
+                    sidebar.style.transform = `translateY(calc(100% - ${midHeight}px))`;
+                    mainButton.style.bottom = `${midHeight + 20}px`;
+                } else if (isFullscreen) {
+                    sidebar.style.transform = 'translateY(0)';
+                    mainButton.style.bottom = '24px';
+                } else { // full
+                    sidebar.style.transform = `translateY(calc(100% - ${fullHeight}px))`;
+                    mainButton.style.bottom = `${fullHeight + 20}px`;
+                }
+
+                sidebarState = state;
+                setTimeout(() => map.invalidateSize(), animate ? 400 : 50);
+            };
+
+            getSidebarState = () => sidebarState;
+            setSidebarState('hidden', false);
+
+            const onTouchStart = (e) => {
+                if (sidebarState === 'hidden') return;
+                startY = e.touches[0].clientY;
+                startHeight = sidebar.getBoundingClientRect().height;
+                sidebar.style.transition = 'none';
+                mainButton.style.transition = 'none';
+            };
+
+            const onTouchMove = (e) => {
+                if (startY === undefined) return;
+                const deltaY = e.touches[0].clientY - startY;
+                const newHeight = startHeight - deltaY;
+                const newTransform = window.innerHeight - newHeight;
+                sidebar.style.transform = `translateY(${newTransform}px)`;
+                mainButton.style.bottom = `${newHeight + 20}px`;
+            };
+
+            const onTouchEnd = (e) => {
+                if (startY === undefined) return;
+                const currentY = sidebar.getBoundingClientRect().top;
+                if (currentY > midHeight) {
+                    setSidebarState('peek');
+                } else if (currentY > peekHeight + 100) {
+                    setSidebarState('mid');
+                } else {
+                    setSidebarState('full');
+                }
+                startY = undefined;
+                startHeight = undefined;
+            };
+
+            handle.addEventListener('touchstart', onTouchStart, { passive: true });
+            document.addEventListener('touchmove', onTouchMove, { passive: true });
+            document.addEventListener('touchend', onTouchEnd, { passive: true });
+        }
+
+        function initFullscreenButton() {
+            const openBtn = document.getElementById('fullscreen-panel-btn');
+            const closeBtn = document.getElementById('panel-close-btn');
+
+            const openPanel = () => {
+                if (typeof setSidebarState === 'function') {
+                    setSidebarState('fullscreen');
+                }
+            };
+
+            const hidePanel = () => {
+                if (typeof setSidebarState === 'function') {
+                    setSidebarState('hidden');
+                }
+            };
+
+            if (openBtn) openBtn.addEventListener('click', openPanel);
+            if (closeBtn) closeBtn.addEventListener('click', hidePanel);
+        }
+
         function initUIControls() {
             initCostingSliders();
             initLoopControls();
             initLocationPanel();
-            initSidebarToggle();
+            initSidebarInteraction();
             initRoutesPanelToggle();
             initHotkeys();
             initExploreMode();
+            initFullscreenButton();
+            initDeviceControls();
             updateParameterDiffPanel();
+            initAIMinimizeControls();
+        }
+
+        function initDeviceControls() {
+            const gpsStartBtn = document.getElementById('gps-start-btn');
+            const gpsStopBtn = document.getElementById('gps-stop-btn');
+            const bleConnectBtn = document.getElementById('ble-connect-btn');
+            const bleDisconnectBtn = document.getElementById('ble-disconnect-btn');
+            const bleSendBtn = document.getElementById('ble-send-btn');
+            const bleSendCommandBtn = document.getElementById('ble-send-command-btn');
+            const bleSendCommandBtnSecond = document.getElementById('ble-send-command-btn-second');
+            const bleCommandInput = document.getElementById('ble-command-input');
+            const bleLeftShort = document.getElementById('ble-left-short');
+            const bleLeftLong = document.getElementById('ble-left-long');
+            const bleRightShort = document.getElementById('ble-right-short');
+            const bleRightLong = document.getElementById('ble-right-long');
+
+            if (gpsStartBtn) gpsStartBtn.addEventListener('click', startGpsTracking);
+            if (gpsStopBtn) gpsStopBtn.addEventListener('click', stopGpsTracking);
+            if (bleConnectBtn) bleConnectBtn.addEventListener('click', connectBleDevice);
+            if (bleDisconnectBtn) bleDisconnectBtn.addEventListener('click', disconnectBleDevice);
+            if (bleSendBtn) bleSendBtn.addEventListener('click', sendBleTestPacket);
+            if (bleSendCommandBtn) bleSendCommandBtn.addEventListener('click', sendBleCommandFromUI);
+            if (bleSendCommandBtnSecond) bleSendCommandBtnSecond.addEventListener('click', sendBleCommandFromUI);
+            if (bleCommandInput) {
+                bleCommandInput.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        sendBleCommandFromUI();
+                    }
+                });
+            }
+            if (bleLeftShort) bleLeftShort.addEventListener('click', () => sendCommandToDevice('HapticNav-Left', 'VIB_LEFT', 'L command'));
+            if (bleLeftLong) bleLeftLong.addEventListener('click', () => sendCommandToDevice('HapticNav-Left', 'VIB_LEFT_LONG', 'LL command'));
+            if (bleRightShort) bleRightShort.addEventListener('click', () => sendCommandToDevice('HapticNav-Right', 'VIB_RIGHT', 'R command'));
+            if (bleRightLong) bleRightLong.addEventListener('click', () => sendCommandToDevice('HapticNav-Right', 'VIB_RIGHT_LONG', 'RR command'));
         }
 
         // Initialize explore mode controls
         function initExploreMode() {
             const exploreModeCheckbox = document.getElementById('explore-mode');
             if (exploreModeCheckbox) {
-                exploreModeCheckbox.addEventListener('change', function() {
+                exploreModeCheckbox.addEventListener('change', function () {
                     if (!this.checked) {
                         // Reset explore mode when unchecked
                         resetExploreMode();
@@ -4914,9 +5609,18 @@ Only respond with valid JSON, no explanation.`;
 
         // Load saved API key from localStorage
         function loadSavedAPIKey() {
+            const input = document.getElementById('openai-api-key');
+            if (!input) return;
+
             const savedKey = localStorage.getItem('openai_api_key');
-            if (savedKey) {
-                document.getElementById('openai-api-key').value = savedKey;
+            const configKey = (window.APP_CONFIG && window.APP_CONFIG.openaiApiKey) || window.__OPENAI_API_KEY;
+            const key = savedKey || configKey || '';
+
+            if (key) {
+                input.value = key;
+                if (!savedKey && configKey) {
+                    localStorage.setItem('openai_api_key', configKey);
+                }
             }
         }
 
@@ -4924,14 +5628,17 @@ Only respond with valid JSON, no explanation.`;
         function setupAPIKeySaving() {
             const apiKeyInput = document.getElementById('openai-api-key');
             if (apiKeyInput) {
-                apiKeyInput.addEventListener('change', function() {
-                    const key = this.value.trim();
+                const persistKey = (value) => {
+                    const key = value.trim();
                     if (key) {
                         localStorage.setItem('openai_api_key', key);
                     } else {
                         localStorage.removeItem('openai_api_key');
                     }
-                });
+                };
+
+                apiKeyInput.addEventListener('input', () => persistKey(apiKeyInput.value));
+                apiKeyInput.addEventListener('change', () => persistKey(apiKeyInput.value));
             }
         }
 
@@ -4939,6 +5646,13 @@ Only respond with valid JSON, no explanation.`;
         function initAIFeatures() {
             loadSavedAPIKey();
             setupAPIKeySaving();
+        }
+
+        function initAIMinimizeControls() {
+            const miniBtn = document.getElementById('ai-mini-btn');
+            if (miniBtn) {
+                miniBtn.addEventListener('click', expandAIOverlay);
+            }
         }
 
         // Initialize after DOM loads
@@ -4974,7 +5688,7 @@ Only respond with valid JSON, no explanation.`;
         }
 
         // Zoom change event listener
-        map.on('zoomend', function() {
+        map.on('zoomend', function () {
             updateTreeCanopyDotSizes();
             applyOverlayScaling();
         });
@@ -4997,7 +5711,7 @@ Only respond with valid JSON, no explanation.`;
                         const pointGeoJSON = canopyData.featureCollection;
 
                         treeCanopyLayer = L.geoJSON(pointGeoJSON, {
-                            pointToLayer: function(feature, latlng) {
+                            pointToLayer: function (feature, latlng) {
                                 return buildTriangleMarker(
                                     latlng,
                                     TREE_CANOPY_POINT_RADIUS * 4,
@@ -5005,7 +5719,7 @@ Only respond with valid JSON, no explanation.`;
                                     COLOR_PALETTE.treePoint
                                 );
                             },
-                            onEachFeature: function(feature, layer) {
+                            onEachFeature: function (feature, layer) {
                                 if (feature.properties) {
                                     let popupContent = '<b>Tree Canopy</b><br>';
                                     for (let key in feature.properties) {
@@ -5021,7 +5735,7 @@ Only respond with valid JSON, no explanation.`;
                         treeCanopyLayer.addTo(map);
 
                         if (treeCanopyLayer.getBounds().isValid()) {
-                            map.fitBounds(treeCanopyLayer.getBounds(), {padding: [50, 50]});
+                            map.fitBounds(treeCanopyLayer.getBounds(), { padding: [50, 50] });
                         }
 
                         updateStatus('Tree Canopy layer displayed.', 'success');
@@ -5044,11 +5758,169 @@ Only respond with valid JSON, no explanation.`;
 
 
         // Generate routes on Enter key
-        document.addEventListener('keypress', function(e) {
+        document.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
                 generateRoutes();
             }
         });
+
+        // --- Seasonal Presets & Auto-detection ---
+
+        let seasonalPresets = null;
+        let autoSeasonInterval = null;
+
+        async function fetchSeasonalPresets() {
+            if (seasonalPresets) return seasonalPresets;
+            try {
+                const response = await fetch('seasonal_presets.json');
+                if (!response.ok) throw new Error('Failed to load seasonal presets');
+                seasonalPresets = await response.json();
+                return seasonalPresets;
+            } catch (error) {
+                console.error('Error loading seasonal presets:', error);
+                return null;
+            }
+        }
+
+        async function applySeason(season) {
+            const presets = await fetchSeasonalPresets();
+            if (!presets || !presets[season]) return;
+
+            const preset = presets[season];
+            console.log(`Applying ${season} preset:`, preset);
+
+            // Apply overrides
+            for (const [key, settings] of Object.entries(preset)) {
+                // 1. Check if it's a GeoJSON layer
+                const layerConfig = geoJsonLayerConfig.find(l => l.name === key);
+                if (layerConfig) {
+                    if (settings.weight !== undefined) layerConfig.weight = settings.weight;
+                    if (settings.score_boost !== undefined) layerConfig.score_boost = settings.score_boost;
+
+                    const weightSlider = document.getElementById(`layer-${key}-weight`);
+                    const boostSlider = document.getElementById(`layer-${key}-boost`);
+
+                    if (weightSlider) {
+                        weightSlider.value = layerConfig.weight;
+                        const display = document.getElementById(`layer-${key}-weight-val`);
+                        if (display) display.textContent = layerConfig.weight.toFixed(1);
+                    }
+                    if (boostSlider) {
+                        boostSlider.value = layerConfig.score_boost;
+                        const display = document.getElementById(`layer-${key}-boost-val`);
+                        if (display) display.textContent = layerConfig.score_boost.toFixed(2);
+                    }
+                    continue;
+                }
+
+                // 2. Check if it's a Costing Option slider (e.g., treecanopy-factor)
+                // The key in json might be "treecanopy_factor" or "treecanopy-factor"
+                // Let's assume the JSON key matches the slider ID or we map it.
+                // For simplicity, let's assume JSON keys match slider IDs for costing options.
+                const slider = document.getElementById(key);
+                if (slider) {
+                    // If settings is a number (direct value) or object with value
+                    const value = typeof settings === 'object' ? settings.value : settings;
+                    if (value !== undefined) {
+                        slider.value = value;
+                        // Update display if exists
+                        // Convention: slider ID + "-value" (e.g. treecanopy-factor-value)
+                        // But wait, treecanopy display id is "treecanopy-value" (not factor-value)
+                        // Let's handle specific known cases or try to infer
+                        let displayId = `${key}-value`;
+                        if (key === 'treecanopy-factor') displayId = 'treecanopy-value';
+
+                        const display = document.getElementById(displayId);
+                        if (display) {
+                            display.textContent = value + (display.textContent.includes('%') ? '%' : (display.textContent.includes('s') ? 's' : ''));
+                        }
+                    }
+                }
+            }
+
+            // Trigger route update if auto-update is on
+            if (document.getElementById('auto-update-routes').checked) {
+                generateRoutes();
+            }
+        }
+
+        function toggleAutoSeason(enabled) {
+            const seasonSelect = document.getElementById('season-select');
+            const weatherStatus = document.getElementById('weather-status');
+
+            if (enabled) {
+                seasonSelect.disabled = true;
+                weatherStatus.style.display = 'block';
+                weatherStatus.textContent = 'Detecting location...';
+                detectSeason();
+                // Update every 30 minutes
+                autoSeasonInterval = setInterval(detectSeason, 30 * 60 * 1000);
+            } else {
+                seasonSelect.disabled = false;
+                weatherStatus.style.display = 'none';
+                if (autoSeasonInterval) clearInterval(autoSeasonInterval);
+            }
+        }
+
+        async function detectSeason() {
+            const weatherStatus = document.getElementById('weather-status');
+
+            if (!navigator.geolocation) {
+                weatherStatus.textContent = 'Geolocation not supported';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                try {
+                    weatherStatus.textContent = 'Fetching weather...';
+                    const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                    const data = await response.json();
+                    const temp = data.current_weather.temperature;
+                    const date = new Date();
+                    const month = date.getMonth() + 1; // 1-12
+
+                    let season = 'spring';
+
+                    // Simple logic combining date and temperature
+                    // Northern Hemisphere assumption for months
+                    if (month >= 3 && month <= 5) season = 'spring';
+                    else if (month >= 6 && month <= 8) season = 'summer';
+                    else if (month >= 9 && month <= 11) season = 'autumn';
+                    else season = 'winter';
+
+                    // Temperature overrides
+                    if (temp > 25) season = 'summer';
+                    if (temp < 5) season = 'winter';
+
+                    // Update UI
+                    const seasonSelect = document.getElementById('season-select');
+                    seasonSelect.value = season;
+                    applySeason(season);
+
+                    weatherStatus.textContent = `Detected: ${season.charAt(0).toUpperCase() + season.slice(1)} (${temp}°C)`;
+                } catch (error) {
+                    console.error('Weather API error:', error);
+                    weatherStatus.textContent = 'Weather API failed, using date';
+                    // Fallback to date only
+                    const month = new Date().getMonth() + 1;
+                    let season = 'winter';
+                    if (month >= 3 && month <= 5) season = 'spring';
+                    else if (month >= 6 && month <= 8) season = 'summer';
+                    else if (month >= 9 && month <= 11) season = 'autumn';
+
+                    const seasonSelect = document.getElementById('season-select');
+                    seasonSelect.value = season;
+                    applySeason(season);
+                }
+            }, (error) => {
+                console.error('Geolocation error:', error);
+                weatherStatus.textContent = 'Location access denied';
+            });
+        }
     </script>
 </body>
+
 </html>
