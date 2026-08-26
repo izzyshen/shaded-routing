@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Dev server that serves map.html on http://localhost:5500/map.html
+Dev server that serves the web UI on http://localhost:5500/web/index.html
 and exposes an API to build loop routes backed by Valhalla.
 
 Endpoints:
-  GET  /map.html                 -> serves project root map.html
-  GET  /                         -> redirects to /map.html
+  GET  /web/<file>               -> serves the web UI
+  GET  /regions/<file>           -> serves region manifests and GeoJSON layers
+  GET  /                         -> redirects to /web/index.html
   POST /api/loop_route           -> builds a loop route and returns GeoJSON
 
 POST /api/loop_route request JSON:
@@ -45,12 +46,17 @@ app = Flask(__name__, static_folder=ROOT_DIR)
 
 @app.get("/")
 def root():
-    return redirect("/map.html", code=302)
+    return redirect("/web/index.html", code=302)
 
 
-@app.get("/map.html")
-def serve_map():
-    return send_from_directory(ROOT_DIR, "map.html")
+@app.get("/web/<path:filename>")
+def serve_web(filename):
+    return send_from_directory(os.path.join(ROOT_DIR, "web"), filename)
+
+
+@app.get("/regions/<path:filename>")
+def serve_regions(filename):
+    return send_from_directory(os.path.join(ROOT_DIR, "regions"), filename)
 
 
 @app.post("/api/loop_route")

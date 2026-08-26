@@ -47,6 +47,9 @@ site/
 
 .DS_Store
 
+# shaded-routing local artifacts (OSM extracts, tiles, local dep builds)
+.data/
+
 # python bindings
 src/bindings/python/valhalla/__version__.py
 **/*.egg-info
