@@ -112,6 +112,13 @@ public:
    * @param  offset  The offset of the name info.
    * @return  Returns true if the name info exists, false otherwise.
    */
+  /**
+   * Get the number of name / tagged-value entries currently on this edge info.
+   */
+  std::size_t name_info_count() const {
+    return name_info_list_.size();
+  }
+
   bool has_name_info(uint32_t offset) const {
     for (const auto& name : name_info_list_) {
       if (name.name_offset_ == offset) {

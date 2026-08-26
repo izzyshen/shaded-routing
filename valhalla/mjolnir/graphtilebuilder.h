@@ -506,6 +506,33 @@ public:
   void AddLandmark(const baldr::GraphId& edge_id, const baldr::Landmark& landmark);
 
   /**
+   * Attach an arbitrary tagged value to the given edge by appending it to the
+   * edge's edgeinfo name list. Used by post-build enrichment tools (landmarks,
+   * environmental scores) that mutate already-built tiles.
+   *
+   * @param edge_id  the edge id to modify
+   * @param tag      the tag type to store
+   * @param value    the raw (tag-less) payload; must not contain nulls
+   * @return true if the value was added, false if it was already present or the
+   *         edge has no room left for another name entry
+   */
+  bool AddTaggedValue(const baldr::GraphId& edge_id,
+                      const baldr::TaggedValue tag,
+                      const std::string& value);
+
+  /**
+   * Bulk variant of AddTaggedValue: appends all values, then fixes up edge info
+   * offsets in one pass, so tagging a large share of a tile's edges stays
+   * linear instead of quadratic.
+   *
+   * @param tag     the tag type to store on every entry
+   * @param values  (edge id, raw payload) pairs; payloads must not contain nulls
+   * @return the number of values actually added (duplicates/full edges skipped)
+   */
+  size_t AddTaggedValues(const baldr::TaggedValue tag,
+                         const std::vector<std::pair<baldr::GraphId, std::string>>& values);
+
+  /**
    * Is there an opposing edge with matching edgeinfo offset. The end node of the directed edge
    * must be in the same tile as the directed edge.  This is called during the building of the
    * tiles; therefore, we can't use GetOpposingEdgeId as it has not been set yet.

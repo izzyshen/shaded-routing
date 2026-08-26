@@ -330,7 +330,25 @@ void GraphTileBuilder::StoreTileData() {
     in_mem.write(reinterpret_cast<const char*>(admins_builder_.data()),
                  admins_builder_.size() * sizeof(Admin));
 
-    // Edge bins can only be added after you've stored the tile
+    // Edge bins are normally added after a fresh tile is stored (see AddBins),
+    // but when this builder was deserialized from an existing tile the bins are
+    // already populated and must be carried over — otherwise the stored tile
+    // keeps the old header offsets with no bin data behind them, which corrupts
+    // spatial edge lookup for the whole tile.
+    uint32_t bins_size = 0;
+    if (header_ != nullptr) {
+      uint32_t bin_offsets[kBinCount];
+      uint32_t running = 0;
+      for (size_t i = 0; i < kBinCount; ++i) {
+        auto bin = GetBin(i % kBinsDim, i / kBinsDim);
+        running += static_cast<uint32_t>(bin.end() - bin.begin());
+        bin_offsets[i] = running;
+        in_mem.write(reinterpret_cast<const char*>(bin.begin()),
+                     (bin.end() - bin.begin()) * sizeof(GraphId));
+      }
+      header_builder_.set_edge_bin_offsets(bin_offsets);
+      bins_size = running * sizeof(GraphId);
+    }
 
     // Write the forward complex restriction data
     header_builder_.set_complex_restriction_forward_offset(
@@ -345,7 +363,7 @@ void GraphTileBuilder::StoreTileData() {
         (schedule_builder_.size() * sizeof(TransitSchedule)) +
         // TODO - once transit transfers are added need to update here
         (signs_builder_.size() * sizeof(Sign)) + (turnlanes_builder_.size() * sizeof(TurnLanes)) +
-        (admins_builder_.size() * sizeof(Admin)));
+        (admins_builder_.size() * sizeof(Admin)) + bins_size);
     uint32_t forward_restriction_size = 0;
     for (auto& complex_restriction : complex_restriction_forward_builder_) {
       in_mem << complex_restriction;
@@ -1280,64 +1298,94 @@ void GraphTileBuilder::UpdatePredictedSpeeds(const std::vector<DirectedEdge>& di
 }
 
 void GraphTileBuilder::AddLandmark(const GraphId& edge_id, const Landmark& landmark) {
-  // check the edge id makes sense
-  if (header_builder_.graphid().Tile_Base() != edge_id.Tile_Base()) {
-    throw std::runtime_error(
-        "Can't add landmark: tile id or hierarchy level doesn't match with the current builder");
+  AddTaggedValue(edge_id, baldr::TaggedValue::kLandmark, landmark.to_str());
+}
+
+bool GraphTileBuilder::AddTaggedValue(const GraphId& edge_id,
+                                      const baldr::TaggedValue tag,
+                                      const std::string& value) {
+  return AddTaggedValues(tag, {{edge_id, value}}) > 0;
+}
+
+size_t GraphTileBuilder::AddTaggedValues(const baldr::TaggedValue tag,
+                                         const std::vector<std::pair<GraphId, std::string>>& values) {
+  // append every value to its edge info, remembering how many bytes each
+  // edge info grew; offsets are fixed up in a single pass afterwards so bulk
+  // tagging stays linear instead of quadratic
+  std::map<uint32_t, uint32_t> growth; // original edgeinfo offset -> added bytes
+  size_t added = 0;
+  bool warned_name_cap = false;
+  for (const auto& [edge_id, value] : values) {
+    if (header_builder_.graphid().Tile_Base() != edge_id.Tile_Base()) {
+      throw std::runtime_error(
+          "Can't add tagged value: tile id or hierarchy level doesn't match with the current builder");
+    }
+    if (header_builder_.directededgecount() <= edge_id.id()) {
+      throw std::runtime_error(
+          "Given edge doesn't exist: edge id is larger than total edge size in this tile");
+    }
+
+    const auto original_offset = directededges_builder_[edge_id.id()].edgeinfo_offset();
+    auto eib = edgeinfo_offset_map_.find(original_offset);
+    if (eib == edgeinfo_offset_map_.end()) {
+      throw std::runtime_error("Couldn't find edge info for the given edge: " +
+                               std::to_string(edge_id));
+    }
+
+    // the name list has a hard cap; refuse before mutating anything
+    if (eib->second->name_info_count() >= baldr::kMaxNamesPerEdge) {
+      if (!warned_name_cap) {
+        LOG_WARN("Couldn't add tagged value(s): edge(s) already have the max number of name entries");
+        warned_name_cap = true;
+      }
+      continue;
+    }
+
+    std::string tagged_value = value;
+    tagged_value.insert(tagged_value.begin(), static_cast<char>(tag));
+
+    auto name_offset = AddName(tagged_value);
+    // avoid adding the same value to an edge twice (e.g. via twin edges)
+    if (eib->second->has_name_info(name_offset)) {
+      continue;
+    }
+
+    NameInfo ni{name_offset, 0, 0, 1};
+    eib->second->AddNameInfo(ni);
+    growth[original_offset] += sizeof(ni);
+    ++added;
   }
-  if (header_builder_.directededgecount() <= edge_id.id()) {
-    throw std::runtime_error(
-        "Given edge doesn't exist: edge id is larger than total edge size in this tile");
+  if (added == 0) {
+    return 0;
   }
 
-  // get the edge info / edge info builder
-  const auto& edge = directededges_builder_[edge_id.id()];
-  const auto original_offset = edge.edgeinfo_offset();
-  auto eib = edgeinfo_offset_map_.find(original_offset);
-
-  if (eib == edgeinfo_offset_map_.end()) {
-    throw std::runtime_error("Couldn't find edge info for the given edge: " +
-                             std::to_string(edge_id));
+  // prefix sums of the added bytes, keyed by the (sorted) original offsets
+  std::vector<std::pair<uint32_t, uint32_t>> cumulative(growth.begin(), growth.end());
+  uint32_t total = 0;
+  for (auto& entry : cumulative) {
+    total += entry.second;
+    entry.second = total;
   }
+  edge_info_offset_ += total;
 
-  // get the value and prepend the tag to it
-  std::string tagged_value = landmark.to_str();
-  tagged_value.insert(tagged_value.begin(), static_cast<char>(baldr::TaggedValue::kLandmark));
-
-  auto name_offset = AddName(tagged_value); // where we are storing this tagged_value in the tile
-  // avoid adding existing landmark to edges (e.g. adding the same landmark to twin edges)
-  if (eib->second->has_name_info(name_offset)) {
-    return;
-  }
-
-  // record in the edge info builder of where the tagged_value is
-  NameInfo ni{name_offset, 0, 0, 1};
-  eib->second->AddNameInfo(ni);
-
-  // update edge info offset
-  const auto shift = sizeof(ni);
-  edge_info_offset_ += shift;
-
-  // update edgeinfo_offset for all directededges behind
+  // an edge info keeps its own offset but moves by the bytes added before it
+  const auto shift_for = [&cumulative](const uint32_t offset) -> uint32_t {
+    auto it = std::lower_bound(cumulative.begin(), cumulative.end(), offset,
+                               [](const auto& entry, const uint32_t value) {
+                                 return entry.first < value;
+                               });
+    return it == cumulative.begin() ? 0 : std::prev(it)->second;
+  };
   for (auto& e : directededges_builder_) {
-    const auto offset = e.edgeinfo_offset();
-    if (offset > original_offset) {
-      e.set_edgeinfo_offset(offset + shift);
-    }
+    e.set_edgeinfo_offset(e.edgeinfo_offset() + shift_for(e.edgeinfo_offset()));
   }
-
-  // update edgeinfo_offset_map by updating the offsets (keys)
-  // TODO: optimize this in a better way
-  std::unordered_map<uint32_t, EdgeInfoBuilder*> new_edgeinfo_offset_map_{};
-
-  for (auto& e : edgeinfo_offset_map_) {
-    if (e.first > original_offset) {
-      new_edgeinfo_offset_map_.emplace(e.first + shift, e.second);
-    } else {
-      new_edgeinfo_offset_map_.insert(e);
-    }
+  std::unordered_map<uint32_t, EdgeInfoBuilder*> shifted_map;
+  shifted_map.reserve(edgeinfo_offset_map_.size());
+  for (const auto& entry : edgeinfo_offset_map_) {
+    shifted_map.emplace(entry.first + shift_for(entry.first), entry.second);
   }
-  edgeinfo_offset_map_ = std::move(new_edgeinfo_offset_map_);
+  edgeinfo_offset_map_ = std::move(shifted_map);
+  return added;
 }
 
 bool GraphTileBuilder::OpposingEdgeInfoDiffers(const graph_tile_ptr& tile, const DirectedEdge* edge) {

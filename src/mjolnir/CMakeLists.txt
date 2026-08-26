@@ -37,6 +37,7 @@ set(sources
   elevationbuilder.cc
   ferry_connections.cc
   graphbuilder.cc
+  environment.cc
   graphenhancer.cc
   graphfilter.cc
   graphtilebuilder.cc
