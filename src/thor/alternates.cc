@@ -14,7 +14,7 @@ using namespace valhalla::midgard;
  */
 namespace {
 // Defaults thresholds
-float kAtMostLonger = 10f; // stretch threshold
+float kAtMostLonger = 10.f; // stretch threshold
 // Alternative route shouldn't contain unreasonable detours. We should skip an alternative
 // if it has a detour longer than 2 x cost of the corresponding path in the optimal route.
 float kAtMostLongerDetour = 10.f;

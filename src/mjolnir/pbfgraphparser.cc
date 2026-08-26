@@ -2025,7 +2025,9 @@ struct graph_parser {
     }
 
     std::string buffer;
-    bss_info.SerializeToString(&buffer);
+    // protobuf >= 36 marks SerializeToString [[nodiscard]]; serialization of a
+    // freshly built in-memory message can't fail
+    (void)bss_info.SerializeToString(&buffer);
     const uint32_t bss_info_index = osmdata_.node_names.index(buffer);
     ++osmdata_.node_name_count;
 

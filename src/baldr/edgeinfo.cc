@@ -72,6 +72,9 @@ std::vector<std::string> parse_tagged_value(const char* ptr) {
     case TaggedValue::kConditionalSpeedLimits: {
       return {std::string(ptr, 1 + sizeof(ConditionalSpeedLimit))};
     }
+    case TaggedValue::kEnvironment: {
+      return {std::string(ptr, 1 + kEnvironmentPayloadSize)};
+    }
     case TaggedValue::kLinguistic:
     default:
       return {};
@@ -469,6 +472,31 @@ std::vector<ConditionalSpeedLimit> EdgeInfo::conditional_speed_limits() const {
   return limits;
 }
 
+EnvironmentScores EdgeInfo::environment() const {
+  EnvironmentScores scores;
+  const auto& tags = GetTags();
+  auto itr = tags.find(TaggedValue::kEnvironment);
+  if (itr == tags.end() || itr->second.size() < kEnvironmentPayloadSize) {
+    return scores;
+  }
+  // each byte is stored offset by +1 to keep the payload null-free
+  const std::string& payload = itr->second;
+  scores.tree_canopy = static_cast<uint8_t>(payload[0]) - 1;
+  for (size_t i = 0; i < kMaxGeoJsonLayers; ++i) {
+    scores.layer_scores[i] = static_cast<uint8_t>(payload[1 + i]) - 1;
+  }
+  return scores;
+}
+
+std::string EdgeInfo::EncodeEnvironment(const EnvironmentScores& scores) {
+  std::string payload(kEnvironmentPayloadSize, '\0');
+  payload[0] = static_cast<char>(std::min(scores.tree_canopy, kMaxTreeCanopy) + 1);
+  for (size_t i = 0; i < kMaxGeoJsonLayers; ++i) {
+    payload[1 + i] = static_cast<char>(std::min<uint8_t>(scores.layer_scores[i], 254) + 1);
+  }
+  return payload;
+}
+
 int8_t EdgeInfo::layer() const {
   const auto& tags = GetTags();
   auto itr = tags.find(TaggedValue::kLayer);
@@ -585,6 +613,18 @@ void EdgeInfo::json(rapidjson::writer_wrapper_t& writer) const {
       case TaggedValue::kConditionalSpeedLimits: {
         const ConditionalSpeedLimit* l = reinterpret_cast<const ConditionalSpeedLimit*>(value.data());
         conditional_speed_limits.push_back({l->td_.to_string(), l->speed_});
+        break;
+      }
+      case TaggedValue::kEnvironment: {
+        const auto env = environment();
+        writer.start_object("environment");
+        writer("tree_canopy", static_cast<uint64_t>(env.tree_canopy));
+        writer.start_array("layer_scores");
+        for (const auto score : env.layer_scores) {
+          writer(static_cast<uint64_t>(score));
+        }
+        writer.end_array();
+        writer.end_object();
         break;
       }
       case TaggedValue::kTunnel:

@@ -7,6 +7,7 @@
 #include <valhalla/midgard/encoded.h>
 #include <valhalla/midgard/pointll.h>
 
+#include <array>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -19,6 +20,21 @@ namespace baldr {
 
 constexpr size_t kMaxNamesPerEdge = 15;
 constexpr size_t kMaxEncodedShapeSize = 65535;
+
+// Environmental scores attached to an edge via TaggedValue::kEnvironment.
+// tree_canopy expresses how much shade cover the edge has (0 = none, 127 = full);
+// layer_scores holds one 0-254 score per supplemental region layer (water,
+// open space, street lights, ...) in the slot order declared by the region
+// manifest and referenced by the geojson_layer_factors costing option.
+struct EnvironmentScores {
+  uint8_t tree_canopy = 0;
+  std::array<uint8_t, kMaxGeoJsonLayers> layer_scores{};
+};
+
+// Payload bytes of the kEnvironment tagged value (excludes the leading tag byte).
+// Each byte is stored offset by +1 so the payload never contains nulls.
+constexpr size_t kEnvironmentPayloadSize = 1 + kMaxGeoJsonLayers;
+constexpr uint8_t kMaxTreeCanopy = 127;
 
 // Use elevation bins of 2 meters to store mean elevation. Clamp to a range
 // from -500 meters to 7683 meters.
@@ -277,6 +293,20 @@ public:
    * @return Conditional speed limits for the edge.
    */
   std::vector<ConditionalSpeedLimit> conditional_speed_limits() const;
+
+  /**
+   * Get the environmental scores (tree canopy and supplemental layer scores)
+   * stored on this edge, or all zeros when the tiles carry no environment data.
+   * @return the decoded environmental scores
+   */
+  EnvironmentScores environment() const;
+
+  /**
+   * Encode environmental scores into the payload of a kEnvironment tagged value.
+   * @param scores the scores to encode (tree_canopy clamped to 127, layers to 254)
+   * @return the null-free payload string (kEnvironmentPayloadSize bytes)
+   */
+  static std::string EncodeEnvironment(const EnvironmentScores& scores);
 
   /**
    * Get layer index of the edge relatively to other edges(Z-level). Can be negative.

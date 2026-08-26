@@ -1289,10 +1289,10 @@ protected:
     service_factor_ = costing_options.service_factor();
     // Closure factor to use for closed edges
     closure_factor_ = costing_options.closure_factor();
-      // Tree canopy factor to multiply the tree canopy reduction
-      tree_canopy_factor_ = costing_options.has_tree_canopy_factor_case()
-                                ? costing_options.tree_canopy_factor()
-                                : 1.0f;
+    // Tree canopy factor to multiply the tree canopy reduction
+    tree_canopy_factor_ = costing_options.has_tree_canopy_factor_case()
+                              ? costing_options.tree_canopy_factor()
+                              : 1.0f;
     geojson_layer_factors_.fill(1.0f);
     geojson_layer_base_multipliers_.fill(default_geojson_base_multiplier_);
     geojson_layer_max_reduction_.fill(default_geojson_max_reduction_);

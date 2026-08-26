@@ -705,18 +705,18 @@ Cost BicycleCost::EdgeCost(const baldr::DirectedEdge* edge,
   }
 
   // Reduce cost for edges with more tree canopy (more trees = lower cost)
-  // tree_canopy_count ranges from 0-127, tree=0 uses default cost (no change)
+  // env.tree_canopy ranges from 0-127; 0 leaves the default cost unchanged
   // tree_canopy_factor_ multiplies the reduction (default 1.0, range 0.0-2.0)
   // At 200% factor, maximum reduction is 85% to strongly favor tree-covered routes
-  uint32_t tree_canopy_count = tile->edgeinfo(edge).tree_canopy_count();
-  if (tree_canopy_count > 0 && tree_canopy_factor_ > 0.0f) {
+  const auto env = tile->edgeinfo(edge).environment();
+  if (env.tree_canopy > 0 && tree_canopy_factor_ > 0.0f) {
     // Base reduction of 42.5% at factor 1.0, up to 85% at factor 2.0
-    float tree_canopy_reduction = (tree_canopy_count / 127.0f) * 0.425f * tree_canopy_factor_;
+    float tree_canopy_reduction = (env.tree_canopy / 127.0f) * 0.425f * tree_canopy_factor_;
     // Clamp to maximum 85% reduction to avoid negative or zero cost
     tree_canopy_reduction = std::min(tree_canopy_reduction, 0.85f);
     factor *= (1.0f - tree_canopy_reduction);
   }
-  factor *= GeoJsonCostMultiplier(tile->edgeinfo(edge).geojson_scores());
+  factor *= GeoJsonCostMultiplier(env.layer_scores);
 
   // Compute bicycle speed. If you have to dismount on the edge then set speed to an average
   // walking speed. Otherwise, set speed based on surface factor and grade. Lower bike speed
