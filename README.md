@@ -1,5 +1,26 @@
 
+# Shaded Routing
 
+**Comfort-first routing on top of Valhalla.** City heat is a real pedestrian problem:
+the shortest route is often the hottest one. This fork scores every street edge
+against a region's environmental data — tree canopy, individual street trees, water,
+parks, street lights — and teaches Valhalla's costing models to prefer shaded,
+cooler, more comfortable streets. Routes are then handed to the user's own Google
+Maps app (directions deep link with waypoints) for turn-by-turn navigation.
+
+- **Region-agnostic by design**: all city data lives in [`regions/`](regions/) as
+  GeoJSON plus a `region.json` manifest. Boston ships as the reference region;
+  adding a city is a data drop, not a code change. See [regions/README.md](regions/README.md).
+- **Pipeline**: `valhalla_build_tiles` → [`valhalla_add_environment`](src/mjolnir/valhalla_add_environment.cc)
+  (scores edges from the manifest) → `valhalla_service` → [`web/index.html`](web/index.html)
+  (Leaflet UI with per-route **Open in Google Maps** / QR handoff).
+- **Query-time control**: `tree_canopy_factor` (0–2) and `geojson_layer_factors`
+  costing options tune the shade preference per request — no tile rebuilds.
+- **Architecture & setup**: [docs/shaded-routing/README.md](docs/shaded-routing/README.md).
+
+Built on the Valhalla routing engine — upstream documentation follows.
+
+---
 
      ██▒   █▓ ▄▄▄       ██▓     ██░ ██  ▄▄▄       ██▓     ██▓    ▄▄▄
     ▓██░   █▒▒████▄    ▓██▒    ▓██░ ██▒▒████▄    ▓██▒    ▓██▒   ▒████▄

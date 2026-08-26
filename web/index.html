@@ -948,6 +948,80 @@
         #ai-progress-indicator {
             display: none;
         }
+
+        /* Google Maps handoff */
+        .gmaps-handoff-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .gmaps-handoff-btn {
+            flex: 1;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 8px;
+            background: #1a73e8;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .gmaps-handoff-btn:hover {
+            background: #1765cc;
+        }
+
+        .gmaps-handoff-btn--qr {
+            flex: 0 0 auto;
+            background: #34a853;
+        }
+
+        .gmaps-handoff-btn--qr:hover {
+            background: #2d9248;
+        }
+
+        .gmaps-qr-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            cursor: pointer;
+        }
+
+        .gmaps-qr-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px 24px;
+            max-width: 320px;
+            text-align: center;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .gmaps-qr-card h3 {
+            margin: 0 0 12px;
+            font-size: 15px;
+        }
+
+        .gmaps-qr-card svg {
+            width: 220px;
+            height: 220px;
+        }
+
+        .gmaps-qr-fallback {
+            word-break: break-all;
+            font-size: 11px;
+        }
+
+        .gmaps-qr-hint {
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 
@@ -1406,8 +1480,8 @@
         <div id="location-panel" class="collapsible-panel hidden">
             <div class="form-group">
                 <label>Server Address</label>
-                <input type="text" id="server-url" value="https://exostotic-shanna-nontheologically.ngrok-free.dev"
-                    placeholder="http://localhost:8002 or https://your-ngrok-url.ngrok-free.dev">
+                <input type="text" id="server-url" value="http://localhost:8002"
+                    placeholder="http://localhost:8002 or https://your-tunnel-url.example.com">
                 <div class="info-text">Valhalla service address (localhost or ngrok URL)</div>
             </div>
 
@@ -1421,7 +1495,7 @@
                         <input type="number" id="origin-lon" step="0.000001" placeholder="Longitude" value="-71.0656">
                     </div>
                 </div>
-                <div class="info-text">Boston Common — Tap or click to change</div>
+                <div class="info-text" id="origin-hint">Tap or click to change</div>
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
@@ -1434,7 +1508,7 @@
                         <input type="number" id="dest-lon" step="0.000001" placeholder="Longitude" value="-71.0972">
                     </div>
                 </div>
-                <div class="info-text">Fenway Park — Long-press or right-click to change</div>
+                <div class="info-text" id="dest-hint">Long-press or right-click to change</div>
             </div>
         </div>
 
@@ -1477,14 +1551,49 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- QR generator for the Google Maps handoff -->
+    <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js" crossorigin=""></script>
 
     <script>
-        // Boston landmarks
-        const BOSTON_COMMON = [42.3551, -71.0656]; // Boston Common
-        const FENWAY_PARK = [42.3467, -71.0972]; // Fenway Park
+        // Region configuration. Everything location-specific (map center, default
+        // origin/destination, data layers) comes from regions/<id>/region.json so
+        // any city with a manifest is a drop-in. The fallback below only positions
+        // the map until the manifest loads.
+        const REGION_BASE = '../regions';
+        let regionId = new URLSearchParams(window.location.search).get('region') || null;
+        let regionConfig = null;
+        const REGION_FALLBACK = {
+            center: { lat: 42.3509, lon: -71.0814, zoom: 13 },
+            defaults: {
+                origin: { lat: 42.3551, lon: -71.0656, label: 'Origin' },
+                destination: { lat: 42.3467, lon: -71.0972, label: 'Destination' }
+            }
+        };
+
+        async function loadRegionConfig() {
+            if (!regionId) {
+                try {
+                    const index = await fetch(`${REGION_BASE}/index.json`).then(r => (r.ok ? r.json() : null));
+                    regionId = (index && index.default) || 'boston';
+                } catch (error) {
+                    regionId = 'boston';
+                }
+            }
+            const response = await fetch(`${REGION_BASE}/${regionId}/region.json`);
+            if (!response.ok) {
+                throw new Error(`Unable to load region manifest for "${regionId}"`);
+            }
+            regionConfig = await response.json();
+            return regionConfig;
+        }
+
+        function regionFilePath(file) {
+            return `${REGION_BASE}/${regionId}/${file}`;
+        }
 
         // Initialize map
-        const map = L.map('map').setView([42.3509, -71.0814], 13);
+        const map = L.map('map').setView(
+            [REGION_FALLBACK.center.lat, REGION_FALLBACK.center.lon], REGION_FALLBACK.center.zoom);
         const routesPane = map.createPane('routesPane');
         routesPane.style.zIndex = 700;
         routesPane.style.pointerEvents = 'none';
@@ -1573,29 +1682,83 @@
 
         // Initialize markers
         function initializeMarkers() {
-            // Origin marker (Boston Common)
-            originMarker = L.marker(BOSTON_COMMON, { draggable: true, icon: originIcon }).addTo(map);
+            // Origin marker (repositioned once the region manifest loads)
+            const fallbackOrigin = REGION_FALLBACK.defaults.origin;
+            originMarker = L.marker([fallbackOrigin.lat, fallbackOrigin.lon],
+                { draggable: true, icon: originIcon }).addTo(map);
             elevateMarker(originMarker);
-            originMarker.bindPopup('Origin: Boston Common').openPopup();
+            originMarker.bindPopup('Origin').openPopup();
             originMarker.on('dragend', function () {
                 const pos = originMarker.getLatLng();
                 document.getElementById('origin-lat').value = pos.lat.toFixed(6);
                 document.getElementById('origin-lon').value = pos.lng.toFixed(6);
             });
 
-            // Destination marker (Fenway Park)
-            destMarker = L.marker(FENWAY_PARK, { draggable: true, icon: destinationIcon }).addTo(map);
+            // Destination marker (repositioned once the region manifest loads)
+            const fallbackDest = REGION_FALLBACK.defaults.destination;
+            destMarker = L.marker([fallbackDest.lat, fallbackDest.lon],
+                { draggable: true, icon: destinationIcon }).addTo(map);
             elevateMarker(destMarker);
-            destMarker.bindPopup('Destination: Fenway Park').openPopup();
+            destMarker.bindPopup('Destination').openPopup();
             destMarker.on('dragend', function () {
                 const pos = destMarker.getLatLng();
                 document.getElementById('dest-lat').value = pos.lat.toFixed(6);
                 document.getElementById('dest-lon').value = pos.lng.toFixed(6);
             });
 
-            // Fit map bounds to show both markers
+            // Fit map bounds to show both markers. The container may not have
+            // its final size yet, so refresh it and cap the zoom, otherwise
+            // Leaflet computes the fit against a zero-size map.
+            map.invalidateSize();
             const group = new L.featureGroup([originMarker, destMarker]);
-            map.fitBounds(group.getBounds(), { padding: [50, 50] });
+            map.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 15 });
+        }
+
+        // Push the loaded region manifest into the map, inputs and markers.
+        function applyRegionDefaults(config) {
+            if (!config) return;
+            if (config.name) {
+                document.title = `Shaded Routing — ${config.name}`;
+            }
+            if (config.bounds) {
+                applyLoopGenerationConfig({ bounds: config.bounds });
+            }
+            const origin = config.defaults && config.defaults.origin;
+            const destination = config.defaults && config.defaults.destination;
+            if (origin) {
+                document.getElementById('origin-lat').value = origin.lat.toFixed(6);
+                document.getElementById('origin-lon').value = origin.lon.toFixed(6);
+                const hint = document.getElementById('origin-hint');
+                if (hint) hint.textContent = `${origin.label || 'Origin'} — Tap or click to change`;
+                if (originMarker) {
+                    originMarker.setLatLng([origin.lat, origin.lon]);
+                    originMarker.setPopupContent(`Origin: ${origin.label || 'Start'}`);
+                }
+            }
+            if (destination) {
+                document.getElementById('dest-lat').value = destination.lat.toFixed(6);
+                document.getElementById('dest-lon').value = destination.lon.toFixed(6);
+                const destHint = document.getElementById('dest-hint');
+                if (destHint) {
+                    destHint.textContent =
+                        `${destination.label || 'Destination'} — Long-press or right-click to change`;
+                }
+                if (destMarker) {
+                    destMarker.setLatLng([destination.lat, destination.lon]);
+                    destMarker.setPopupContent(`Destination: ${destination.label || 'End'}`);
+                }
+            }
+            // settle the view once layout is final; invalidateSize guards against
+            // fitting bounds while the container still reports a stale size
+            setTimeout(() => {
+                map.invalidateSize();
+                if (originMarker && destMarker) {
+                    const group = new L.featureGroup([originMarker, destMarker]);
+                    map.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 15 });
+                } else if (config.center) {
+                    map.setView([config.center.lat, config.center.lon], config.center.zoom || 13);
+                }
+            }, 600);
         }
 
         // Initialize markers when map is ready
@@ -1701,11 +1864,14 @@
         const geoJsonOverlayLayers = {};
         const overlayScalingMap = new Map();
 
-        const TREE_CANOPY_DATA_PATHS = [
-            'geojson_data/tree_canopy.geojson',
-            'geojson_data/Canopy_Change_Assessment%3A_Tree_Canopy_Metrics.geojson',
-            encodeURI('geojson_data/Canopy_Change_Assessment: Tree_Canopy_Metrics.geojson')
-        ];
+        // Canopy files come from the region manifest once it loads
+        function treeCanopyDataPaths() {
+            const sources = (regionConfig && regionConfig.canopy && regionConfig.canopy.sources) || [];
+            const paths = sources
+                .filter(source => source.kind === 'polygon' && source.file)
+                .map(source => regionFilePath(source.file));
+            return paths;
+        }
         const TREE_CANOPY_SAMPLE_RATE = 25;
         const TREE_CANOPY_BIAS_SAMPLE_SIZE = 80;
         const TREE_CANOPY_MIN_SEARCH_RADIUS = 200; // meters
@@ -2566,7 +2732,7 @@
 
         async function fetchTreeCanopyGeoJSON() {
             let lastError;
-            for (const path of TREE_CANOPY_DATA_PATHS) {
+            for (const path of treeCanopyDataPaths()) {
                 try {
                     const response = await fetch(path);
                     if (response.ok) {
@@ -3363,15 +3529,19 @@
             };
 
             const qs = encodeURIComponent(JSON.stringify(requestBody));
+            // keep requests CORS-"simple" (no preflight): only CORS-safelisted
+            // headers unless we're talking to an ngrok tunnel, which needs its
+            // warning-skip header and handles OPTIONS itself
+            const valhallaHeaders = { 'Accept': 'application/json' };
+            if (serverUrl.includes('ngrok')) {
+                valhallaHeaders['ngrok-skip-browser-warning'] = 'true';
+            }
             let response;
             let lastGetNetworkError = null;
             try {
                 response = await fetchWithTimeout(`${serverUrl}/route?json=${qs}`, {
                     method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    }
+                    headers: valhallaHeaders
                 });
             } catch (getError) {
                 lastGetNetworkError = getError;
@@ -3381,11 +3551,7 @@
                 try {
                     response = await fetchWithTimeout(`${serverUrl}/route`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'ngrok-skip-browser-warning': 'true'
-                        },
+                        headers: valhallaHeaders,
                         body: JSON.stringify(requestBody)
                     });
                 } catch (postError) {
@@ -3750,7 +3916,7 @@
                         Math.abs(maxReduction - 0.5) > 1e-4;
                     if (factor !== 1.0 || metadataDiffers) {
                         geojsonLayerFactors.push({
-                            slot: index,
+                            slot: typeof layer.slot === 'number' ? layer.slot : index,
                             name: layer.name || `layer_${index}`,
                             factor: factor,
                             base_multiplier: baseMultiplier,
@@ -4023,6 +4189,99 @@
         }
 
         // Display routes function
+        // ---- Google Maps handoff ------------------------------------------------
+        // The Google Maps app can't accept an external polyline, but its directions
+        // URL takes up to 9 intermediate waypoints. We spend those 9 points on the
+        // most shape-defining vertices of our shaded route (Visvalingam-Whyatt
+        // simplification), so Google's own navigation is pulled onto the same
+        // streets our costing chose.
+        function selectHandoffWaypoints(coords, maxWaypoints = 9) {
+            const n = coords.length;
+            if (n <= 2 || maxWaypoints <= 0) return [];
+            const prev = new Array(n);
+            const next = new Array(n);
+            const area = new Array(n).fill(Infinity);
+            for (let i = 0; i < n; i++) {
+                prev[i] = i - 1;
+                next[i] = i + 1;
+            }
+            const effectiveArea = i => Math.abs(
+                (coords[prev[i]].lon - coords[i].lon) * (coords[next[i]].lat - coords[i].lat) -
+                (coords[next[i]].lon - coords[i].lon) * (coords[prev[i]].lat - coords[i].lat));
+            for (let i = 1; i < n - 1; i++) area[i] = effectiveArea(i);
+
+            let interior = n - 2;
+            while (interior > maxWaypoints) {
+                let minArea = Infinity;
+                let minIdx = -1;
+                for (let i = next[0]; i !== n - 1; i = next[i]) {
+                    if (area[i] < minArea) {
+                        minArea = area[i];
+                        minIdx = i;
+                    }
+                }
+                if (minIdx === -1) break;
+                next[prev[minIdx]] = next[minIdx];
+                prev[next[minIdx]] = prev[minIdx];
+                if (prev[minIdx] !== 0) area[prev[minIdx]] = effectiveArea(prev[minIdx]);
+                if (next[minIdx] !== n - 1) area[next[minIdx]] = effectiveArea(next[minIdx]);
+                interior--;
+            }
+
+            const waypoints = [];
+            for (let i = next[0]; i !== n - 1; i = next[i]) {
+                waypoints.push(coords[i]);
+            }
+            return waypoints;
+        }
+
+        function googleTravelMode() {
+            const costing = document.getElementById('costing').value;
+            if (costing === 'bicycle') return 'bicycling';
+            if (costing === 'pedestrian') return 'walking';
+            return 'driving';
+        }
+
+        function buildGoogleMapsUrl(routeCoords) {
+            const origin = routeCoords[0];
+            const destination = routeCoords[routeCoords.length - 1];
+            const fmt = p => `${p.lat.toFixed(6)},${p.lon.toFixed(6)}`;
+            const waypoints = selectHandoffWaypoints(routeCoords, 9);
+            let url = 'https://www.google.com/maps/dir/?api=1' +
+                `&origin=${fmt(origin)}` +
+                `&destination=${fmt(destination)}` +
+                `&travelmode=${googleTravelMode()}`;
+            if (waypoints.length) {
+                url += `&waypoints=${encodeURIComponent(waypoints.map(fmt).join('|'))}`;
+            }
+            return url;
+        }
+
+        function showHandoffQr(url, routeName) {
+            let overlay = document.getElementById('gmaps-qr-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'gmaps-qr-overlay';
+                overlay.className = 'gmaps-qr-overlay';
+                overlay.addEventListener('click', () => overlay.remove());
+                document.body.appendChild(overlay);
+            }
+            let qrMarkup = '';
+            if (typeof qrcode !== 'undefined') {
+                const qr = qrcode(0, 'M');
+                qr.addData(url);
+                qr.make();
+                qrMarkup = qr.createSvgTag({ cellSize: 4, margin: 4 });
+            }
+            overlay.innerHTML = `
+                <div class="gmaps-qr-card">
+                    <h3>${routeName} — follow in Google Maps</h3>
+                    ${qrMarkup || `<p class="gmaps-qr-fallback">${url}</p>`}
+                    <p>Scan with your phone, then tap Start in Google Maps.</p>
+                    <p class="gmaps-qr-hint">Tap anywhere to close</p>
+                </div>`;
+        }
+
         function displayRoutes(routes) {
             // Remove all existing route layers from the map before creating new ones
             routeLayers.forEach(layer => {
@@ -4100,6 +4359,28 @@
                     <p>Smoothness penalty: ${smoothLabel}</p>
                 `;
 
+                // Hand this route to the user's own Google Maps for turn-by-turn
+                const handoffRow = document.createElement('div');
+                handoffRow.className = 'gmaps-handoff-row';
+                const openBtn = document.createElement('button');
+                openBtn.className = 'gmaps-handoff-btn';
+                openBtn.textContent = 'Open in Google Maps';
+                openBtn.onclick = event => {
+                    event.stopPropagation();
+                    window.open(buildGoogleMapsUrl(routeCoords), '_blank', 'noopener');
+                };
+                const qrButton = document.createElement('button');
+                qrButton.className = 'gmaps-handoff-btn gmaps-handoff-btn--qr';
+                qrButton.textContent = 'QR';
+                qrButton.title = 'Show a QR code to open this route on your phone';
+                qrButton.onclick = event => {
+                    event.stopPropagation();
+                    showHandoffQr(buildGoogleMapsUrl(routeCoords), routeName);
+                };
+                handoffRow.appendChild(openBtn);
+                handoffRow.appendChild(qrButton);
+                routeItem.appendChild(handoffRow);
+
                 routeItem.onclick = function () {
                     // Highlight active route
                     document.querySelectorAll('.route-item').forEach(item => {
@@ -4133,10 +4414,12 @@
             // Show route info if enabled
             applyRoutesInfoVisibility();
 
-            // Adjust map bounds
+            // Adjust map bounds (refresh the cached container size first so the
+            // fit isn't computed against a stale viewport)
             if (routeLayers.length > 0) {
+                map.invalidateSize();
                 const group = new L.featureGroup(routeLayers);
-                map.fitBounds(group.getBounds(), { padding: [50, 50] });
+                map.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 16 });
             }
         }
 
@@ -4682,17 +4965,29 @@ Only respond with valid JSON, no explanation.`;
 
         async function loadGeoJsonLayers() {
             try {
-                const response = await fetch('local_valhalla.json');
-                if (!response.ok) throw new Error('Failed to load config');
-                const config = await response.json();
-                if (config && config.loop_generation) {
-                    applyLoopGenerationConfig(config.loop_generation);
-                }
-                const layers =
-                    config && config.mjolnir && Array.isArray(config.mjolnir.geojson_layers)
-                        ? config.mjolnir.geojson_layers
-                        : [];
-                geoJsonLayerConfig = layers.slice(0, 8);
+                const config = await loadRegionConfig();
+                applyRegionDefaults(config);
+
+                // scoring layers occupy the leading slots in slot order; display-only
+                // overlays follow and are skipped by the factor sliders
+                const scoringLayers = (config.layers || [])
+                    .slice()
+                    .sort((a, b) => (a.slot || 0) - (b.slot || 0))
+                    .map(layer => ({
+                        name: layer.name,
+                        display_name: layer.label || layer.name,
+                        slot: layer.slot,
+                        path: regionFilePath(((layer.sources || [])[0] || {}).file || ''),
+                        display: layer.display || null
+                    }));
+                const overlayLayers = (config.overlays || []).map(overlay => ({
+                    name: overlay.name,
+                    display_name: overlay.label || overlay.name,
+                    path: regionFilePath(overlay.file),
+                    display: overlay.display || null,
+                    display_only: true
+                }));
+                geoJsonLayerConfig = scoringLayers.concat(overlayLayers).slice(0, 8);
                 buildGeoJsonLayerControls();
                 buildGeoJsonOverlayControls();
             } catch (error) {
@@ -4726,6 +5021,9 @@ Only respond with valid JSON, no explanation.`;
             // const header = document.createElement('div'); ...
 
             geoJsonLayerConfig.forEach((layer, index) => {
+                if (layer.display_only) {
+                    return; // overlays render on the map but don't affect costing
+                }
                 const sliderId = `geo-layer-${index}`;
                 const valueId = `${sliderId}-value`;
                 const label = layer.display_name || layer.name || `Layer ${index + 1}`;
@@ -4918,6 +5216,18 @@ Only respond with valid JSON, no explanation.`;
 
         function getSupplementalLayerPalette(index) {
             const layer = geoJsonLayerConfig[index] || {};
+            // colors declared in the region manifest win over any built-in override
+            if (layer.display && layer.display.stroke) {
+                return {
+                    stroke: layer.display.stroke,
+                    fill: layer.display.fill || layer.display.stroke,
+                    point: layer.display.point || layer.display.stroke,
+                    pointRadius: layer.display.pointRadius || SUPPLEMENTAL_POINT_RADIUS,
+                    pointRadiusRange: layer.display.pointRadiusRange,
+                    scaleWithZoom: layer.display.scaleWithZoom,
+                    zoomRange: layer.display.zoomRange
+                };
+            }
             const override = getLayerOverride(layer);
             if (override) {
                 return { ...override };
