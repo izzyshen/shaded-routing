@@ -5924,11 +5924,13 @@ Only respond with valid JSON, no explanation.`;
 
             const savedKey = localStorage.getItem('openai_api_key');
             const configKey = (window.APP_CONFIG && window.APP_CONFIG.openaiApiKey) || window.__OPENAI_API_KEY;
-            const key = savedKey || configKey || '';
+            // config.local.js is the source of truth when present, so a stale
+            // key saved in localStorage can't shadow a corrected config file
+            const key = configKey || savedKey || '';
 
             if (key) {
                 input.value = key;
-                if (!savedKey && configKey) {
+                if (configKey && savedKey !== configKey) {
                     localStorage.setItem('openai_api_key', configKey);
                 }
             }
