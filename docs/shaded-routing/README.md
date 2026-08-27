@@ -58,6 +58,21 @@ shows the same link for phone handoff. Caveats: the Maps app honors at most 9
 waypoints (mobile browsers only 3), and between waypoints Google may deviate
 from the shaded ideal on long routes.
 
+## Build notes (macOS)
+
+Two environment pitfalls are worth knowing:
+
+- **Conda/Anaconda protobuf is ABI-incompatible** with a system-toolchain build:
+  the service compiles fine but crashes (SIGBUS in protobuf's parser) on every
+  request. CMake now refuses a conda-resolved protobuf at configure time; fix it
+  by keeping conda out of the search path:
+  `cmake -DCMAKE_IGNORE_PREFIX_PATH=/opt/anaconda3 ...` with Homebrew's
+  `protobuf` installed. Protobuf ≥ 30 also needs
+  `-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Wno-unused-result"`.
+- **`pkgconf` must be installed** (`brew install pkgconf`) or CMake reports
+  misleading "cURL not found" / "prime_server not found" errors; prime_server
+  itself must be built from source and pointed to via `PKG_CONFIG_PATH`.
+
 ## Running Boston end-to-end
 
 ```bash

@@ -194,6 +194,18 @@ find_package(Protobuf REQUIRED)
 message(STATUS "Using protoc from ${Protobuf_PROTOC_EXECUTABLE}")
 message(STATUS "Using pbf headers from ${Protobuf_INCLUDE_DIRS}")
 message(STATUS "Using pbf libs from ${PROTOBUF_LIBRARIES}")
+# A protobuf picked up from a conda/Anaconda prefix links against conda's C++
+# runtime and crashes at request time (SIGBUS in TcParser) when the rest of the
+# build uses the system toolchain. Refuse it at configure time instead.
+string(FIND "${Protobuf_INCLUDE_DIRS};${PROTOBUF_LIBRARIES};${Protobuf_PROTOC_EXECUTABLE}" "conda" _protobuf_conda_hit)
+if(NOT _protobuf_conda_hit EQUAL -1)
+  message(FATAL_ERROR
+    "Protobuf was resolved from a conda/Anaconda prefix, which is ABI-incompatible "
+    "with this build and causes the service to crash on every request. Reconfigure "
+    "with a system protobuf, e.g.:\n"
+    "  cmake -DCMAKE_IGNORE_PREFIX_PATH=/opt/anaconda3 ... (plus your other flags)\n"
+    "On macOS: brew install protobuf")
+endif()
 if(TARGET protobuf::libprotobuf-lite)
   message(STATUS "Using pbf-lite")
 endif()
