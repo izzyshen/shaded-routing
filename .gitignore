@@ -49,6 +49,8 @@ site/
 
 # shaded-routing local artifacts (OSM extracts, tiles, local dep builds)
 .data/
+# local secrets (OpenAI key for the prompt feature) — never commit
+web/config.local.js
 
 # python bindings
 src/bindings/python/valhalla/__version__.py
