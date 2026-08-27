@@ -35,8 +35,11 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 try:
     import requests
-except Exception as exc:  # pragma: no cover
-    print("This script requires the 'requests' package. Install with: pip install requests", file=sys.stderr)
+except Exception:  # pragma: no cover
+    print(
+        "This script requires the 'requests' package. Install with: pip install requests",
+        file=sys.stderr,
+    )
     raise
 
 
@@ -58,11 +61,15 @@ class SnappedLocation:
         return location
 
 
-def offset_from_bearing(lat_deg: float, lon_deg: float, distance_m: float, bearing_rad: float) -> Tuple[float, float]:
+def offset_from_bearing(
+    lat_deg: float, lon_deg: float, distance_m: float, bearing_rad: float
+) -> Tuple[float, float]:
     lat0 = math.radians(lat_deg)
     lon0 = math.radians(lon_deg)
     ang = distance_m / R_EARTH_M
-    lat1 = math.asin(math.sin(lat0) * math.cos(ang) + math.cos(lat0) * math.sin(ang) * math.cos(bearing_rad))
+    lat1 = math.asin(
+        math.sin(lat0) * math.cos(ang) + math.cos(lat0) * math.sin(ang) * math.cos(bearing_rad)
+    )
     lon1 = lon0 + math.atan2(
         math.sin(bearing_rad) * math.sin(ang) * math.cos(lat0),
         math.cos(ang) - math.sin(lat0) * math.sin(lat1),
@@ -108,11 +115,12 @@ def decode_polyline6(encoded: str) -> List[Tuple[float, float]]:
 
 
 def vector_heading_deg(a: Tuple[float, float], b: Tuple[float, float]) -> float:
-    dlat = math.radians(b[0] - a[0])
     dlon = math.radians(b[1] - a[1])
     lat1 = math.radians(a[0])
     y = math.sin(dlon) * math.cos(math.radians(b[0]))
-    x = math.cos(lat1) * math.sin(math.radians(b[0])) - math.sin(lat1) * math.cos(math.radians(b[0])) * math.cos(dlon)
+    x = math.cos(lat1) * math.sin(math.radians(b[0])) - math.sin(lat1) * math.cos(
+        math.radians(b[0])
+    ) * math.cos(dlon)
     brng = math.degrees(math.atan2(y, x))
     return (brng + 360.0) % 360.0
 
@@ -127,7 +135,9 @@ class ValhallaClient:
         self.base_url = base_url.rstrip("/")
         self.timeout_s = timeout_s
 
-    def locate(self, lat: float, lon: float, radius_m: int, search_filter: Optional[Dict[str, Any]] = None) -> Optional[Tuple[float, float]]:
+    def locate(
+        self, lat: float, lon: float, radius_m: int, search_filter: Optional[Dict[str, Any]] = None
+    ) -> Optional[Tuple[float, float]]:
         url = f"{self.base_url}/locate"
         body: Dict[str, Any] = {"locations": [{"lat": lat, "lon": lon, "radius": radius_m}]}
         if search_filter:
@@ -158,12 +168,21 @@ class ValhallaClient:
 
         return None
 
-    def route(self, locations: Sequence[SnappedLocation], costing: str = "pedestrian", costing_options: Optional[Dict[str, Any]] = None, osrm: bool = False, units: str = "kilometers") -> Optional[Dict[str, Any]]:
+    def route(
+        self,
+        locations: Sequence[SnappedLocation],
+        costing: str = "pedestrian",
+        costing_options: Optional[Dict[str, Any]] = None,
+        osrm: bool = False,
+        units: str = "kilometers",
+    ) -> Optional[Dict[str, Any]]:
         url = f"{self.base_url}/route"
         body: Dict[str, Any] = {
             "locations": [loc.to_location_json() for loc in locations],
             "costing": costing,
-            "directions_options": {"units": "kilometers" if units not in ("miles", "kilometers") else units},
+            "directions_options": {
+                "units": "kilometers" if units not in ("miles", "kilometers") else units
+            },
         }
         if costing_options:
             body["costing_options"] = costing_options
@@ -241,7 +260,15 @@ def compute_loopiness_from_shape(encoded_multi: str) -> float:
     return score
 
 
-def choose_vias(primary: SnappedLocation, candidates: Sequence[SnappedLocation], k: int, start_lat: float, start_lon: float, min_angle_sep_deg: float = 50.0, min_spacing_m: float = 80.0) -> List[SnappedLocation]:
+def choose_vias(
+    primary: SnappedLocation,
+    candidates: Sequence[SnappedLocation],
+    k: int,
+    start_lat: float,
+    start_lon: float,
+    min_angle_sep_deg: float = 50.0,
+    min_spacing_m: float = 80.0,
+) -> List[SnappedLocation]:
     if k <= 0:
         return [primary]
 
@@ -306,7 +333,9 @@ def build_walking_loop(
     snapped_start = valhalla.locate(start_lat, start_lon, candidate_snap_radius_m, search_filter)
     if not snapped_start:
         return None
-    start_loc = SnappedLocation(snapped_start[0], snapped_start[1], candidate_snap_radius_m, search_filter)
+    start_loc = SnappedLocation(
+        snapped_start[0], snapped_start[1], candidate_snap_radius_m, search_filter
+    )
 
     # 3) Generate and snap candidates
     snapped_candidates: List[SnappedLocation] = []
@@ -321,7 +350,10 @@ def build_walking_loop(
             continue
         snapped_loc = SnappedLocation(snapped[0], snapped[1], candidate_snap_radius_m, search_filter)
         # Avoid near-duplicates
-        if all(haversine_m((snapped_loc.lat, snapped_loc.lon), (c.lat, c.lon)) > 50.0 for c in snapped_candidates):
+        if all(
+            haversine_m((snapped_loc.lat, snapped_loc.lon), (c.lat, c.lon)) > 50.0
+            for c in snapped_candidates
+        ):
             snapped_candidates.append(snapped_loc)
 
     if not snapped_candidates:
@@ -339,7 +371,9 @@ def build_walking_loop(
             vias = choose_vias(primary, snapped_candidates, k, start_loc.lat, start_loc.lon)
             locations = [start_loc] + vias + [start_loc]
 
-            route_json = valhalla.route(locations, costing="pedestrian", costing_options=costing_options, osrm=False)
+            route_json = valhalla.route(
+                locations, costing="pedestrian", costing_options=costing_options, osrm=False
+            )
             if not route_json:
                 continue
             total_length_m = extract_total_length_m(route_json)
@@ -361,7 +395,9 @@ def build_walking_loop(
         best: Optional[Tuple[float, Dict[str, Any]]] = None
         for primary in snapped_candidates:
             locations = [start_loc, primary, start_loc]
-            route_json = valhalla.route(locations, costing="pedestrian", costing_options=costing_options, osrm=False)
+            route_json = valhalla.route(
+                locations, costing="pedestrian", costing_options=costing_options, osrm=False
+            )
             if not route_json:
                 continue
             total_length_m = extract_total_length_m(route_json)
@@ -428,7 +464,9 @@ def main() -> None:
     parser.add_argument("--start-lat", type=float, required=True)
     parser.add_argument("--start-lon", type=float, required=True)
     parser.add_argument("--distance-m", type=float, required=True)
-    parser.add_argument("--valhalla-url", type=str, default=os.environ.get("VALHALLA_URL", "http://localhost:8002"))
+    parser.add_argument(
+        "--valhalla-url", type=str, default=os.environ.get("VALHALLA_URL", "http://localhost:8002")
+    )
     parser.add_argument("--max-candidates", type=int, default=8)
     parser.add_argument("--tolerance", type=float, default=0.15, help="±ratio for distance match")
     parser.add_argument("--snap-radius", type=int, default=75)
@@ -464,5 +502,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

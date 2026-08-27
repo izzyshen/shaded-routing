@@ -1370,10 +1370,9 @@ size_t GraphTileBuilder::AddTaggedValues(const baldr::TaggedValue tag,
 
   // an edge info keeps its own offset but moves by the bytes added before it
   const auto shift_for = [&cumulative](const uint32_t offset) -> uint32_t {
-    auto it = std::lower_bound(cumulative.begin(), cumulative.end(), offset,
-                               [](const auto& entry, const uint32_t value) {
-                                 return entry.first < value;
-                               });
+    auto it =
+        std::lower_bound(cumulative.begin(), cumulative.end(), offset,
+                         [](const auto& entry, const uint32_t value) { return entry.first < value; });
     return it == cumulative.begin() ? 0 : std::prev(it)->second;
   };
   for (auto& e : directededges_builder_) {

@@ -25,7 +25,6 @@ Response: GeoJSON FeatureCollection with LineString and length_m property.
 
 from __future__ import annotations
 
-import json
 import os
 from typing import Any, Dict
 
@@ -105,5 +104,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

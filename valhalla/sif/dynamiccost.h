@@ -19,11 +19,10 @@
 #include <valhalla/sif/edgelabel.h>
 #include <valhalla/thor/edgestatus.h>
 
-#include <algorithm>
-#include <array>
-
 #include <boost/container/small_vector.hpp>
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
@@ -1290,9 +1289,8 @@ protected:
     // Closure factor to use for closed edges
     closure_factor_ = costing_options.closure_factor();
     // Tree canopy factor to multiply the tree canopy reduction
-    tree_canopy_factor_ = costing_options.has_tree_canopy_factor_case()
-                              ? costing_options.tree_canopy_factor()
-                              : 1.0f;
+    tree_canopy_factor_ =
+        costing_options.has_tree_canopy_factor_case() ? costing_options.tree_canopy_factor() : 1.0f;
     geojson_layer_factors_.fill(1.0f);
     geojson_layer_base_multipliers_.fill(default_geojson_base_multiplier_);
     geojson_layer_max_reduction_.fill(default_geojson_max_reduction_);
@@ -1339,16 +1337,14 @@ protected:
     default_geojson_max_reduction_ = max_reduction;
   }
 
-  float GeoJsonCostMultiplier(
-      const std::array<uint8_t, baldr::kMaxGeoJsonLayers>& scores) const {
+  float GeoJsonCostMultiplier(const std::array<uint8_t, baldr::kMaxGeoJsonLayers>& scores) const {
     float multiplier = 1.0f;
     for (size_t i = 0; i < scores.size(); ++i) {
       const uint8_t score = scores[i];
       const float layer_factor = geojson_layer_factors_[i];
       const float base_multiplier = geojson_layer_base_multipliers_[i];
       const float max_reduction = geojson_layer_max_reduction_[i];
-      if (score == 0 || layer_factor <= 0.0f || base_multiplier <= 0.0f ||
-          max_reduction <= 0.0f) {
+      if (score == 0 || layer_factor <= 0.0f || base_multiplier <= 0.0f || max_reduction <= 0.0f) {
         continue;
       }
       float reduction = (static_cast<float>(score) / 255.0f) * base_multiplier * layer_factor;

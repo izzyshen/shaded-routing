@@ -129,8 +129,7 @@ struct Ring {
   std::vector<std::vector<uint32_t>> bands; // per-band indexes of segment start points
 
   void build_bands() {
-    const size_t band_count =
-        std::min<size_t>(std::max<size_t>(pts.size() / 8, 1), 4096);
+    const size_t band_count = std::min<size_t>(std::max<size_t>(pts.size() / 8, 1), 4096);
     band_height = (maxy - miny) / static_cast<double>(band_count);
     if (band_height <= 0) {
       band_height = 1;
@@ -307,8 +306,7 @@ FeatureStore load_source(const SourceConfig& cfg, const std::filesystem::path& b
     }
     const std::string type = geom["type"].GetString();
     const auto& coords = geom["coordinates"];
-    const double value =
-        cfg.kind == SourceKind::kPolygon ? feature_value(cfg, feature) : 1.0;
+    const double value = cfg.kind == SourceKind::kPolygon ? feature_value(cfg, feature) : 1.0;
 
     if (type == "Point" && coords.IsArray() && coords.Size() >= 2) {
       store.points.emplace_back(coords[0].GetDouble(), coords[1].GetDouble());
@@ -358,8 +356,8 @@ FeatureStore load_source(const SourceConfig& cfg, const std::filesystem::path& b
   // cells because their rings are inserted per overlapped cell and can span a
   // whole city.
   const double query_m = std::max({cfg.radius_m, cfg.proximity_m, 30.0});
-  const double cell_deg = (cfg.kind == SourceKind::kPolygon ? std::max(query_m, 150.0) : query_m) /
-                          kMetersPerDegree;
+  const double cell_deg =
+      (cfg.kind == SourceKind::kPolygon ? std::max(query_m, 150.0) : query_m) / kMetersPerDegree;
   store.grid = std::make_unique<GridIndex>(cell_deg);
   switch (cfg.kind) {
     case SourceKind::kPoint:
@@ -397,7 +395,8 @@ FeatureStore load_source(const SourceConfig& cfg, const std::filesystem::path& b
 }
 
 // Score one sample point against a source, in [0, 1].
-double score_sample(const FeatureStore& store, const PointLL& sample, std::vector<uint32_t>& scratch) {
+double
+score_sample(const FeatureStore& store, const PointLL& sample, std::vector<uint32_t>& scratch) {
   const auto& cfg = store.cfg;
   switch (cfg.kind) {
     case SourceKind::kPoint: {
@@ -601,8 +600,8 @@ bool AddEnvironment(const boost::property_tree::ptree& config, const std::string
     for (const auto& cfg : slot.sources) {
       layer_sources[slot.slot].push_back(load_source(cfg, base_dir));
       LOG_INFO("Loaded layer " + std::to_string(slot.slot) + " (" + slot.name + ") source " +
-               cfg.file + " with " +
-               std::to_string(layer_sources[slot.slot].back().feature_count()) + " features");
+               cfg.file + " with " + std::to_string(layer_sources[slot.slot].back().feature_count()) +
+               " features");
     }
   }
 
@@ -668,9 +667,8 @@ bool AddEnvironment(const boost::property_tree::ptree& config, const std::string
 
         // only rewrite the tile if something scored non-zero
         const auto is_zero = [](const EnvironmentScores& s) {
-          return s.tree_canopy == 0 &&
-                 std::all_of(s.layer_scores.begin(), s.layer_scores.end(),
-                             [](uint8_t v) { return v == 0; });
+          return s.tree_canopy == 0 && std::all_of(s.layer_scores.begin(), s.layer_scores.end(),
+                                                   [](uint8_t v) { return v == 0; });
         };
         size_t nonzero = 0;
         for (const auto& kv : scored) {
