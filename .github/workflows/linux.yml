@@ -130,7 +130,8 @@ jobs:
       
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: ${{ env.SETUP_TMATE == 'true' || failure() }}
+        # opt-in only: auto-tmate on failure holds failed jobs open for hours
+        if: ${{ env.SETUP_TMATE == 'true' }}
         with:
           detached: true
 
@@ -203,13 +204,15 @@ jobs:
       - uses: codecov/codecov-action@v5
         name: Upload codecov report
         with:
-          fail_ci_if_error: true
+          # this fork has no CODECOV_TOKEN secret; don't fail the build on upload
+          fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
       
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: ${{ env.SETUP_TMATE == 'true' || failure() }}
+        # opt-in only: auto-tmate on failure holds failed jobs open for hours
+        if: ${{ env.SETUP_TMATE == 'true' }}
         with:
           detached: true
 
@@ -276,6 +279,7 @@ jobs:
       
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: ${{ env.SETUP_TMATE == 'true' || failure() }}
+        # opt-in only: auto-tmate on failure holds failed jobs open for hours
+        if: ${{ env.SETUP_TMATE == 'true' }}
         with:
           detached: true

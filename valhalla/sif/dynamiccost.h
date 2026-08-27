@@ -1298,13 +1298,15 @@ protected:
       if (layer_factor.slot() < geojson_layer_factors_.size()) {
         float factor = std::max(0.0f, std::min(layer_factor.factor(), 2.0f));
         geojson_layer_factors_[layer_factor.slot()] = factor;
-        if (layer_factor.has_base_multiplier()) {
+        // use the oneof case accessor: protobuf < 3.15 doesn't generate has_x()
+        // for scalar oneof members
+        if (layer_factor.has_base_multiplier_case()) {
           float base_mult = layer_factor.base_multiplier();
           if (base_mult > 0.0f) {
             geojson_layer_base_multipliers_[layer_factor.slot()] = base_mult;
           }
         }
-        if (layer_factor.has_max_reduction()) {
+        if (layer_factor.has_max_reduction_case()) {
           float cap = std::min(std::max(layer_factor.max_reduction(), 0.0f), 0.99f);
           if (cap > 0.0f) {
             geojson_layer_max_reduction_[layer_factor.slot()] = cap;
