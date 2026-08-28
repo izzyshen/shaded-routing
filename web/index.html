@@ -4741,6 +4741,87 @@
             return solarPosition(new Date(), center.lat, center.lon);
         }
 
+        // --- Building shadows ----------------------------------------------
+        // Wall segments from OSM footprints (scripts/extract_buildings.py),
+        // lazy-loaded per 0.02° cell around the routes. A sample is shaded by
+        // a building when a ray cast toward the sun hits a wall within that
+        // building's shadow length min(h/tan(elevation), 80) m.
+        const BUILDING_CELL_DEG = 0.02;
+        const BSEG_CELL_DEG = 40 / 111320; // ~40 m segment grid
+        const BUILDING_SHADOW_CAP_M = 80;
+        const loadedBuildingCells = new Map(); // "i_j" -> promise
+        const buildingSegGrid = new Map();     // "i:j" -> [[alat,alon,blat,blon,h], ...]
+
+        function loadBuildingCell(key) {
+            if (loadedBuildingCells.has(key)) return loadedBuildingCells.get(key);
+            const promise = fetch(`${REGION_BASE}/${regionId}/buildings/${key}.json`)
+                .then(r => (r.ok ? r.json() : null))
+                .then(data => {
+                    if (!data || !data.b) return;
+                    for (const [h, ring] of data.b) {
+                        for (let i = 1; i < ring.length; i++) {
+                            const [alon, alat] = ring[i - 1];
+                            const [blon, blat] = ring[i];
+                            const midLat = (alat + blat) / 2;
+                            const midLon = (alon + blon) / 2;
+                            const gk = `${Math.floor(midLat / BSEG_CELL_DEG)}:${Math.floor(midLon / BSEG_CELL_DEG)}`;
+                            let bucket = buildingSegGrid.get(gk);
+                            if (!bucket) {
+                                bucket = [];
+                                buildingSegGrid.set(gk, bucket);
+                            }
+                            bucket.push([alat, alon, blat, blon, h]);
+                        }
+                    }
+                })
+                .catch(() => null);
+            loadedBuildingCells.set(key, promise);
+            return promise;
+        }
+
+        async function ensureBuildingsForCoords(coordLists) {
+            const margin = 0.001; // ~100 m: catch shadows cast from outside the cell
+            const needed = new Set();
+            for (const coords of coordLists) {
+                for (const c of coords) {
+                    for (const dLat of [-margin, 0, margin]) {
+                        for (const dLon of [-margin, 0, margin]) {
+                            needed.add(`${Math.floor((c.lat + dLat) / BUILDING_CELL_DEG)}_` +
+                                `${Math.floor((c.lon + dLon) / BUILDING_CELL_DEG)}`);
+                        }
+                    }
+                }
+            }
+            await Promise.all([...needed].map(loadBuildingCell));
+        }
+
+        function buildingShadesSample(lat, lon, lonMPerDeg, sunAzRad, tanEl) {
+            const ux = Math.sin(sunAzRad); // toward the sun, east component
+            const uy = Math.cos(sunAzRad); // north component
+            const latM = 111320;
+            const ci = Math.floor(lat / BSEG_CELL_DEG);
+            const cj = Math.floor(lon / BSEG_CELL_DEG);
+            for (let di = -2; di <= 2; di++) {
+                for (let dj = -2; dj <= 2; dj++) {
+                    const bucket = buildingSegGrid.get(`${ci + di}:${cj + dj}`);
+                    if (!bucket) continue;
+                    for (const [alat, alon, blat, blon, h] of bucket) {
+                        const L = Math.min(h / tanEl, BUILDING_SHADOW_CAP_M);
+                        const ax = (alon - lon) * lonMPerDeg;
+                        const ay = (alat - lat) * latM;
+                        const dx = (blon - alon) * lonMPerDeg;
+                        const dy = (blat - alat) * latM;
+                        const det = dx * uy - ux * dy;
+                        if (Math.abs(det) < 1e-9) continue;
+                        const t = (dx * ay - dy * ax) / det;      // distance along sun ray
+                        const s = (ux * ay - uy * ax) / det;      // position along wall
+                        if (t >= 0 && t <= L && s >= 0 && s <= 1) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         function updateSunStatus(sun, weather) {
             const el = document.getElementById('sun-status');
             if (!el) return;
@@ -4853,6 +4934,9 @@
                         }
                     }
                 }
+                if (sunUp && buildingShadesSample(lat, lon, lonMPerDeg, sun.azimuthDeg * rad, tanEl)) {
+                    return true;
+                }
                 return false;
             };
 
@@ -4878,9 +4962,17 @@
             return samples ? Math.round((shaded / samples) * 100) : 0;
         }
 
-        async function annotateRoutesWithShade(entries) {
+        let lastChooserEntries = null;
+        let lastAnnotatedAt = 0;
+
+        async function annotateRoutesWithShade(entries, options = {}) {
+            const autoSelect = options.autoSelect !== false;
             const generation = routeGeneration;
-            const [treeIndex, weather] = await Promise.all([ensureShadeTreeIndex(), ensureWeather()]);
+            const [treeIndex, weather] = await Promise.all([
+                ensureShadeTreeIndex(),
+                ensureWeather(),
+                ensureBuildingsForCoords(entries.map(e => e.coords))
+            ]);
             if (!treeIndex || !entries.length) return;
             if (generation !== routeGeneration) return; // routes changed while loading
 
@@ -4889,6 +4981,8 @@
                 entry.shadePct = routeShadePercent(entry.coords, treeIndex, sun);
             });
             updateSunStatus(sun, weather);
+            lastChooserEntries = entries;
+            lastAnnotatedAt = Date.now();
 
             // The recommendation is earned by the measured tree cover, not by
             // whichever route the router happened to return first.
@@ -4900,20 +4994,40 @@
             });
 
             renderRouteChooser(ranked);
-            // The measured-best route becomes the highlighted default
-            selectRoute(ranked[0].index, { fit: false });
+            // The measured-best route becomes the highlighted default — but a
+            // background refresh never yanks away the user's own selection
+            if (autoSelect) selectRoute(ranked[0].index, { fit: false });
 
-            // Mirror the metric into the side panel cards
+            // Mirror the metric into the side panel cards (idempotent for refreshes)
             entries.forEach(entry => {
                 const item = routeItemEls[entry.index];
                 if (!item) return;
                 const heading = item.querySelector('h3');
                 if (heading) heading.textContent = entry.name;
-                const stat = document.createElement('p');
-                stat.textContent = `Tree cover: ${entry.shadePct}%`;
-                item.insertBefore(stat, item.querySelector('.gmaps-handoff-row'));
+                let stat = item.querySelector('.shade-stat');
+                if (!stat) {
+                    stat = document.createElement('p');
+                    stat.className = 'shade-stat';
+                    item.insertBefore(stat, item.querySelector('.gmaps-handoff-row'));
+                }
+                stat.textContent = `Shaded now: ${entry.shadePct}%`;
             });
         }
+
+        // Keep the scores live: the sun moves and weather shifts while the app
+        // sits open, so re-score the routes on a cadence and when the tab wakes.
+        const SHADE_REFRESH_MS = 5 * 60 * 1000;
+        setInterval(() => {
+            if (lastChooserEntries && document.visibilityState === 'visible') {
+                annotateRoutesWithShade(lastChooserEntries, { autoSelect: false });
+            }
+        }, SHADE_REFRESH_MS);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && lastChooserEntries &&
+                Date.now() - lastAnnotatedAt > SHADE_REFRESH_MS) {
+                annotateRoutesWithShade(lastChooserEntries, { autoSelect: false });
+            }
+        });
 
         // Floating on-map route picker: choose an option, open it in Google Maps
         function renderRouteChooser(entries) {

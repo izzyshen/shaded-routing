@@ -51,6 +51,8 @@ site/
 .data/
 # local secrets (OpenAI key for the prompt feature) — never commit
 web/config.local.js
+# derived from the region's .osm.pbf by scripts/extract_buildings.py
+regions/*/buildings/
 
 # python bindings
 src/bindings/python/valhalla/__version__.py
