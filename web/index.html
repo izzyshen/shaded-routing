@@ -1686,7 +1686,7 @@
         <div id="location-panel" class="collapsible-panel hidden">
             <div class="form-group">
                 <label>Server Address</label>
-                <input type="text" id="server-url" value="http://localhost:8002"
+                <input type="text" id="server-url" value=""
                     placeholder="http://localhost:8002 or https://your-tunnel-url.example.com">
                 <div class="info-text">Valhalla service address (localhost or ngrok URL)</div>
             </div>
@@ -6548,14 +6548,26 @@ Only respond with valid JSON, no explanation.`;
             }
         }
 
+        // Default the routing server to the host serving this page, so opening
+        // the app from another device (phone on the same Wi-Fi) automatically
+        // targets the machine running valhalla_service instead of "localhost".
+        function initServerUrlDefault() {
+            const input = document.getElementById('server-url');
+            if (input && !input.value) {
+                input.value = `http://${window.location.hostname || 'localhost'}:8002`;
+            }
+        }
+
         // Initialize after DOM loads
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
+                initServerUrlDefault();
                 initUIControls();
                 initAIFeatures();
                 setupDestinationSearch();
             });
         } else {
+            initServerUrlDefault();
             initUIControls();
             initAIFeatures();
             setupDestinationSearch();
