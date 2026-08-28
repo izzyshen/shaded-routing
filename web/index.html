@@ -990,9 +990,17 @@
             width: min(360px, calc(100vw - 120px));
         }
 
+        .map-search-field {
+            position: relative;
+        }
+
+        .map-search-field + .map-search-field {
+            margin-top: 8px;
+        }
+
         .map-search-bar input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 16px 12px 38px;
             border: none;
             border-radius: 24px;
             background: var(--card-bg, #fff);
@@ -1001,8 +1009,38 @@
             outline: none;
         }
 
+        /* Origin/destination dots, Google-Maps style */
+        .map-search-field::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .map-search-field--origin::before {
+            background: #fff;
+            border: 3px solid #5f6368;
+            width: 8px;
+            height: 8px;
+        }
+
+        .map-search-field--dest::before {
+            background: #1a73e8;
+        }
+
+        /* Overlay the map rather than pushing the second field down */
         .map-search-suggestions {
-            margin-top: 6px;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            z-index: 10;
             background: var(--card-bg, #fff);
             border-radius: 12px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
@@ -1042,14 +1080,15 @@
         /* Floating chooser: pick one of the shaded routes, hand off to Google Maps */
         .route-chooser {
             position: absolute;
-            right: 12px;
+            left: 12px;
             bottom: 28px;
             z-index: 1100;
             width: min(320px, calc(100vw - 24px));
+            max-height: calc(100vh - 220px);
+            overflow-y: auto;
             background: var(--card-bg, #fff);
             border-radius: 14px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
-            overflow: hidden;
             display: none;
         }
 
@@ -1075,11 +1114,10 @@
             color: var(--text-secondary, #6e6e73);
         }
 
+        /* Stacked so the Google Maps button can never sit on top of the text */
         .route-chooser-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
+            display: block;
+            padding: 10px 14px 12px;
             cursor: pointer;
             border-top: 1px solid rgba(0, 0, 0, 0.06);
         }
@@ -1090,23 +1128,26 @@
         }
 
         .route-chooser-meta {
-            flex: 1;
             min-width: 0;
         }
 
         .route-chooser-name {
             font-size: 13px;
             font-weight: 600;
+            line-height: 1.3;
         }
 
         .route-chooser-stats {
             font-size: 12px;
             color: var(--text-secondary, #6e6e73);
+            margin-top: 2px;
         }
 
         .route-chooser-go {
-            flex: 0 0 auto;
-            padding: 7px 12px;
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px 12px;
             border: none;
             border-radius: 8px;
             background: #1a73e8;
@@ -1168,9 +1209,16 @@
     <div id="map"></div>
 
     <div class="map-search-bar">
-        <input type="text" id="dest-search" placeholder="Search destination" autocomplete="off"
-            aria-label="Search destination">
-        <div class="map-search-suggestions" id="dest-search-suggestions"></div>
+        <div class="map-search-field map-search-field--origin">
+            <input type="text" id="origin-search" placeholder="Choose starting point" autocomplete="off"
+                aria-label="Choose starting point">
+            <div class="map-search-suggestions" id="origin-search-suggestions"></div>
+        </div>
+        <div class="map-search-field map-search-field--dest">
+            <input type="text" id="dest-search" placeholder="Choose destination" autocomplete="off"
+                aria-label="Choose destination">
+            <div class="map-search-suggestions" id="dest-search-suggestions"></div>
+        </div>
     </div>
 
     <div class="route-chooser" id="route-chooser">
@@ -1668,37 +1716,6 @@
         <div id="status" class="status-info">Ready</div>
     </div>
     </div>
-    <div id="ai-overlay" class="ai-overlay" role="region" aria-label="AI Route Preferences">
-        <label for="ai-prompt">🤖 AI Route Preferences</label>
-        <div class="ai-input-row">
-            <textarea id="ai-prompt" placeholder="e.g., Take me through shaded, quiet streets"></textarea>
-            <button id="voice-input-btn" class="ai-voice-btn" type="button" onclick="toggleVoiceInput()"
-                title="Voice input">
-                <svg id="mic-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z"
-                        stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="#007AFF"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M12 19V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </button>
-        </div>
-        <button id="apply-ai-btn" type="button" onclick="applyAIPromptAndGenerate()">Apply & Generate Routes</button>
-        <div id="ai-status"></div>
-    </div>
-    <button id="ai-mini-btn" aria-label="Show AI preferences" title="Show AI preferences">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z"
-                stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="#007AFF" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M12 19V22" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-    </button>
     <div id="ai-progress-indicator" role="status" aria-live="polite"></div>
 
     <!-- Leaflet JS -->
@@ -1766,11 +1783,19 @@
             }
         })();
 
-        // CartoDB Positron - clean and simple style
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
+        // Light gray canvas basemap: clean backdrop so route lines stay legible.
+        // Keyless (CARTO's tiles now watermark without an API key).
+        L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; Esri',
             maxZoom: 19
+        }).addTo(map);
+
+        // Street/place labels on top of the gray canvas
+        L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            pane: 'shadowPane'
         }).addTo(map);
 
         let originMarker = null;
@@ -1887,6 +1912,8 @@
                     originMarker.setLatLng([origin.lat, origin.lon]);
                     originMarker.setPopupContent(`Origin: ${origin.label || 'Start'}`);
                 }
+                const originSearch = document.getElementById('origin-search');
+                if (originSearch && !originSearch.value) originSearch.value = origin.label || '';
             }
             if (destination) {
                 document.getElementById('dest-lat').value = destination.lat.toFixed(6);
@@ -1900,6 +1927,8 @@
                     destMarker.setLatLng([destination.lat, destination.lon]);
                     destMarker.setPopupContent(`Destination: ${destination.label || 'End'}`);
                 }
+                const destSearch = document.getElementById('dest-search');
+                if (destSearch && !destSearch.value) destSearch.value = destination.label || '';
             }
             // settle the view once layout is final; invalidateSize guards against
             // fitting bounds while the container still reports a stale size
@@ -4666,21 +4695,43 @@
         }
 
         function closeSearchSuggestions() {
-            document.getElementById('dest-search-suggestions').classList.remove('open');
+            document.querySelectorAll('.map-search-suggestions')
+                .forEach(box => box.classList.remove('open'));
         }
 
-        function selectDestination(place) {
-            const input = document.getElementById('dest-search');
+        // Both search fields share this config; 'origin' and 'destination' differ
+        // only in which coordinate inputs they write and which marker they move.
+        const SEARCH_FIELDS = {
+            origin: {
+                inputId: 'origin-search',
+                boxId: 'origin-search-suggestions',
+                latId: 'origin-lat',
+                lonId: 'origin-lon'
+            },
+            destination: {
+                inputId: 'dest-search',
+                boxId: 'dest-search-suggestions',
+                latId: 'dest-lat',
+                lonId: 'dest-lon'
+            }
+        };
+
+        function selectPlace(kind, place) {
+            const field = SEARCH_FIELDS[kind];
+            const input = document.getElementById(field.inputId);
             input.value = shortPlaceName(place.display_name);
             closeSearchSuggestions();
-            document.getElementById('dest-lat').value = parseFloat(place.lat).toFixed(6);
-            document.getElementById('dest-lon').value = parseFloat(place.lon).toFixed(6);
-            // Shaded routing is the default: no prompt needed, just generate
-            generateRoutes();
+            document.getElementById(field.latId).value = parseFloat(place.lat).toFixed(6);
+            document.getElementById(field.lonId).value = parseFloat(place.lon).toFixed(6);
+
+            // Shaded routing is the default: as soon as both ends are known, route.
+            const haveOrigin = Number.isFinite(parseFloat(document.getElementById('origin-lat').value));
+            const haveDest = Number.isFinite(parseFloat(document.getElementById('dest-lat').value));
+            if (haveOrigin && haveDest) generateRoutes();
         }
 
-        function renderSearchSuggestions(places, query) {
-            const box = document.getElementById('dest-search-suggestions');
+        function renderSearchSuggestions(kind, places, query) {
+            const box = document.getElementById(SEARCH_FIELDS[kind].boxId);
             box.innerHTML = '';
             if (!places.length) {
                 const hint = document.createElement('div');
@@ -4693,15 +4744,15 @@
                     row.className = 'map-search-suggestion';
                     row.textContent = place.display_name;
                     row.title = place.display_name;
-                    row.onclick = () => selectDestination(place);
+                    row.onclick = () => selectPlace(kind, place);
                     box.appendChild(row);
                 });
             }
             box.classList.add('open');
         }
 
-        function setupDestinationSearch() {
-            const input = document.getElementById('dest-search');
+        function wireSearchField(kind) {
+            const input = document.getElementById(SEARCH_FIELDS[kind].inputId);
             if (!input) return;
 
             const runSearch = async () => {
@@ -4711,12 +4762,9 @@
                     return;
                 }
                 try {
-                    const places = await geocodeDestination(query);
-                    renderSearchSuggestions(places, query);
+                    renderSearchSuggestions(kind, await geocodeDestination(query), query);
                 } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        console.error('Destination search error:', error);
-                    }
+                    if (error.name !== 'AbortError') console.error('Place search error:', error);
                 }
             };
 
@@ -4734,16 +4782,31 @@
                 try {
                     const places = await geocodeDestination(query);
                     if (places.length) {
-                        selectDestination(places[0]);
+                        selectPlace(kind, places[0]);
                     } else {
-                        renderSearchSuggestions(places, query);
+                        renderSearchSuggestions(kind, places, query);
                     }
                 } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        console.error('Destination search error:', error);
-                    }
+                    if (error.name !== 'AbortError') console.error('Place search error:', error);
                 }
             });
+        }
+
+        function setupDestinationSearch() {
+            wireSearchField('origin');
+            wireSearchField('destination');
+
+            // Seed the fields with the region's default endpoints so the app is
+            // usable immediately and the user can see what each field expects.
+            const defaults = (regionConfig && regionConfig.defaults) || {};
+            const originInput = document.getElementById('origin-search');
+            const destInput = document.getElementById('dest-search');
+            if (originInput && defaults.origin && defaults.origin.label) {
+                originInput.value = defaults.origin.label;
+            }
+            if (destInput && defaults.destination && defaults.destination.label) {
+                destInput.value = defaults.destination.label;
+            }
 
             document.addEventListener('click', event => {
                 if (!event.target.closest('.map-search-bar')) closeSearchSuggestions();
@@ -4871,12 +4934,15 @@
 
                 // Set transcript to textarea
                 const promptTextarea = document.getElementById('ai-prompt');
-                promptTextarea.value = transcript;
-                applyAIPromptAndGenerate();
+                if (promptTextarea) {
+                    promptTextarea.value = transcript;
+                    applyAIPromptAndGenerate();
+                }
 
                 showAIStatus('✓ Voice recognition complete!', 'success');
                 setTimeout(() => {
-                    document.getElementById('ai-status').style.display = 'none';
+                    const statusEl = document.getElementById('ai-status');
+                    if (statusEl) statusEl.style.display = 'none';
                 }, 2000);
 
             } catch (error) {
@@ -4909,9 +4975,10 @@
 
         // AI Prompt Processing Functions
         async function applyAIPromptAndGenerate() {
-            const prompt = document.getElementById('ai-prompt').value.trim();
+            const promptEl = document.getElementById('ai-prompt');
+            if (!promptEl) return; // prompt UI is not part of the default experience
+            const prompt = promptEl.value.trim();
             const apiKey = document.getElementById('openai-api-key').value.trim();
-            const statusDiv = document.getElementById('ai-status');
 
             if (!prompt) {
                 showAIStatus('Please enter a prompt.', 'error');
@@ -5161,6 +5228,7 @@ Only respond with valid JSON, no explanation.`;
 
         function showAIStatus(message, type) {
             const statusDiv = document.getElementById('ai-status');
+            if (!statusDiv) return;
             statusDiv.textContent = message;
             statusDiv.style.display = 'block';
 
