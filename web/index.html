@@ -981,6 +981,11 @@
             background: #2d9248;
         }
 
+        /* Mute the OSM basemap into a light-gray canvas */
+        .basemap-muted {
+            filter: grayscale(0.9) contrast(0.9) brightness(1.07);
+        }
+
         /* Google-Maps-style destination search over the map */
         .map-search-bar {
             position: absolute;
@@ -1783,19 +1788,13 @@
             }
         })();
 
-        // Light gray canvas basemap: clean backdrop so route lines stay legible.
-        // Keyless (CARTO's tiles now watermark without an API key).
-        L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; Esri',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Street/place labels on top of the gray canvas
-        L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        // OSM standard tiles: keyless and native to z19, so no "map data not yet
+        // available" tiles when zoomed to street level. The basemap-muted CSS
+        // filter grays them down so the green route lines stay the focal point.
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
-            pane: 'shadowPane'
+            className: 'basemap-muted'
         }).addTo(map);
 
         let originMarker = null;
@@ -1946,6 +1945,7 @@
         // Initialize markers when map is ready
         map.whenReady(initializeMarkers);
         let routeLayers = [];
+        let routeHitLayers = []; // invisible wide lines that make routes easy to tap
         let routesData = [];
         let currentActiveRoute = null;
         let treeCanopyDots = []; // Tree canopy dot markers
@@ -4429,10 +4429,14 @@
             const destination = routeCoords[routeCoords.length - 1];
             const fmt = p => `${p.lat.toFixed(6)},${p.lon.toFixed(6)}`;
             const waypoints = selectHandoffWaypoints(routeCoords, 9);
+            // dir_action=navigate: on phones the Google Maps app launches straight
+            // into turn-by-turn guidance; on desktop (no navigation mode) it is
+            // ignored and the route preview shows as before.
             let url = 'https://www.google.com/maps/dir/?api=1' +
                 `&origin=${fmt(origin)}` +
                 `&destination=${fmt(destination)}` +
-                `&travelmode=${googleTravelMode()}`;
+                `&travelmode=${googleTravelMode()}` +
+                '&dir_action=navigate';
             if (waypoints.length) {
                 url += `&waypoints=${encodeURIComponent(waypoints.map(fmt).join('|'))}`;
             }
@@ -4472,6 +4476,14 @@
                 }
             });
             routeLayers = [];
+            routeHitLayers.forEach(layer => {
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                }
+            });
+            routeHitLayers = [];
+            routeItemEls = [];
+            chooserRowEls = [];
             const routesList = document.getElementById('routes-list');
             routesList.innerHTML = '';
             const legendItems = document.getElementById('legend-items');
@@ -4504,28 +4516,47 @@
                 const smoothLabel = smoothness ? smoothness.penalty.toFixed(2) : '—';
                 const avgTurnLabel = smoothness ? `${Math.round(smoothness.avgTurnDeg)}° avg` : 'n/a';
 
-                // Create route line
+                // Create route line (every route stays visible; selectRoute()
+                // owns the emphasis styling)
                 const polyline = L.polyline(latlngs, {
                     color: color,
-                    weight: isOptimal ? 4 : 3,
-                    opacity: showAll || index === 0 ? 0.8 : 0.3,
+                    weight: 3.5,
+                    opacity: 0.45,
                     dashArray: '10, 9',
                     lineCap: 'square',
                     pane: 'routesPane'
                 }).addTo(map);
                 polyline.bringToFront();
+                routeLayers.push(polyline);
 
-                // Route info popup
-                polyline.bindPopup(`
-                    <b>${routeName}</b><br>
+                // Invisible wide twin of the route: an easy tap/click target.
+                // Clicking any route selects it and opens its info popup.
+                const hitLine = L.polyline(latlngs, {
+                    color: '#000',
+                    weight: 20,
+                    opacity: 0,
+                    pane: 'routesPane'
+                }).addTo(map);
+                const chooserEntry = {
+                    index: index,
+                    name: routeName,
+                    distance: distance,
+                    time: time,
+                    coords: routeCoords
+                };
+                // Content as a function: re-evaluated on open, so the name and
+                // tree-cover % stay current after the shade ranking lands
+                hitLine.bindPopup(() => `
+                    <b>${chooserEntry.name}</b><br>
                     Distance: ${distance} km<br>
-                    Time: ${time} min<br>
-                    Maneuvers: ${maneuversCount}<br>
-                    Segments: ${legs.length}<br>
+                    Time: ${time} min<br>` +
+                    (typeof chooserEntry.shadePct === 'number'
+                        ? `Tree cover: ${chooserEntry.shadePct}%<br>` : '') +
+                    `Maneuvers: ${maneuversCount}<br>
                     Smoothness: ${smoothLabel} (${avgTurnLabel})
                 `);
-
-                routeLayers.push(polyline);
+                hitLine.on('click', () => selectRoute(index, { fit: false }));
+                routeHitLayers.push(hitLine);
 
                 // Add to route list
                 const routeItem = document.createElement('div');
@@ -4564,32 +4595,11 @@
                 handoffRow.appendChild(qrButton);
                 routeItem.appendChild(handoffRow);
 
-                routeItem.onclick = function () {
-                    // Highlight active route
-                    document.querySelectorAll('.route-item').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    routeItem.classList.add('active');
-
-                    // Make other routes semi-transparent
-                    routeLayers.forEach((layer, i) => {
-                        if (i === index) {
-                            layer.setStyle({ opacity: 0.8, weight: 5 });
-                            map.fitBounds(layer.getBounds(), { padding: [50, 50] });
-                        } else {
-                            layer.setStyle({ opacity: 0.2, weight: 3 });
-                        }
-                    });
-                };
+                routeItem.onclick = () => selectRoute(index, { fit: true });
 
                 routesList.appendChild(routeItem);
-                chooserEntries.push({
-                    name: routeName,
-                    distance: distance,
-                    time: time,
-                    coords: routeCoords,
-                    item: routeItem
-                });
+                routeItemEls.push(routeItem);
+                chooserEntries.push(chooserEntry);
 
                 // Add to legend
                 const legendItem = document.createElement('div');
@@ -4612,7 +4622,176 @@
                 map.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 16 });
             }
 
+            routeGeneration++;
             renderRouteChooser(chooserEntries);
+            selectRoute(0, { fit: false });
+            annotateRoutesWithShade(chooserEntries);
+        }
+
+        // One selection model for every surface: map line, chooser row, panel card
+        let activeRouteIndex = 0;
+        let routeItemEls = [];
+        let chooserRowEls = [];
+
+        function selectRoute(index, options = {}) {
+            if (!routeLayers[index]) return;
+            activeRouteIndex = index;
+
+            routeLayers.forEach((layer, i) => {
+                layer.setStyle(i === index
+                    ? { opacity: 0.9, weight: 5 }
+                    : { opacity: 0.45, weight: 3.5 });
+            });
+            routeLayers[index].bringToFront();
+            // Keep hit targets above the visible lines so every route stays tappable
+            routeHitLayers.forEach(layer => layer.bringToFront());
+
+            routeItemEls.forEach((el, i) => el.classList.toggle('active', i === index));
+            chooserRowEls.forEach((row, i) => {
+                if (row) row.classList.toggle('active', i === index);
+            });
+
+            if (options.fit) {
+                map.invalidateSize();
+                map.fitBounds(routeLayers[index].getBounds(), { padding: [50, 50], maxZoom: 16 });
+            }
+        }
+
+        // --- Per-route shade metric ---------------------------------------
+        // Measures each route against the same street-tree data the routing
+        // engine scores with: a stretch of the walk counts as shaded when a
+        // mapped tree sits within the canopy radius the region manifest
+        // declares (Boston: 18 m). Reported as % of the route's length.
+        let shadeTreeIndex = null;
+        let shadeTreeIndexPromise = null;
+        let routeGeneration = 0;
+
+        async function ensureShadeTreeIndex() {
+            if (shadeTreeIndex) return shadeTreeIndex;
+            if (shadeTreeIndexPromise) return shadeTreeIndexPromise;
+            shadeTreeIndexPromise = (async () => {
+                const sources = ((regionConfig && regionConfig.canopy && regionConfig.canopy.sources) || [])
+                    .filter(source => source.kind === 'point' && source.file);
+                const radiusM = sources.reduce((r, s) => Math.max(r, s.radius_m || 0), 0) || 20;
+                const cellSizeDeg = (radiusM * 2) / 111320;
+                const cells = new Map();
+                const cellKey = (lat, lon) =>
+                    `${Math.floor(lat / cellSizeDeg)}:${Math.floor(lon / cellSizeDeg)}`;
+                let treeCount = 0;
+
+                for (const source of sources) {
+                    try {
+                        const response = await fetch(regionFilePath(source.file));
+                        if (!response.ok) continue;
+                        const data = await response.json();
+                        for (const feature of (data.features || [])) {
+                            if (!feature || !feature.geometry) continue;
+                            const geom = feature.geometry;
+                            const points = geom.type === 'Point' ? [geom.coordinates]
+                                : geom.type === 'MultiPoint' ? geom.coordinates : [];
+                            for (const coord of points) {
+                                if (!coord || coord.length < 2) continue;
+                                const key = cellKey(coord[1], coord[0]);
+                                let bucket = cells.get(key);
+                                if (!bucket) {
+                                    bucket = [];
+                                    cells.set(key, bucket);
+                                }
+                                bucket.push([coord[1], coord[0]]);
+                                treeCount++;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Shade index: could not load', source.file, error);
+                    }
+                }
+
+                shadeTreeIndex = treeCount ? { cellSizeDeg, cells, radiusM, treeCount } : null;
+                return shadeTreeIndex;
+            })().finally(() => {
+                shadeTreeIndexPromise = null;
+            });
+            return shadeTreeIndexPromise;
+        }
+
+        function routeShadePercent(coords, treeIndex) {
+            const { cellSizeDeg, cells, radiusM } = treeIndex;
+            const stepMeters = 12;
+            let samples = 0;
+            let shaded = 0;
+
+            const sampleIsShaded = (lat, lon) => {
+                const ci = Math.floor(lat / cellSizeDeg);
+                const cj = Math.floor(lon / cellSizeDeg);
+                for (let di = -1; di <= 1; di++) {
+                    for (let dj = -1; dj <= 1; dj++) {
+                        const bucket = cells.get(`${ci + di}:${cj + dj}`);
+                        if (!bucket) continue;
+                        for (const [treeLat, treeLon] of bucket) {
+                            if (haversineDistanceMeters(lat, lon, treeLat, treeLon) <= radiusM) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            };
+
+            for (let i = 1; i < coords.length; i++) {
+                const a = coords[i - 1];
+                const b = coords[i];
+                const segMeters = haversineDistanceMeters(a.lat, a.lon, b.lat, b.lon);
+                const steps = Math.max(1, Math.round(segMeters / stepMeters));
+                for (let s = 0; s < steps; s++) {
+                    const t = s / steps;
+                    samples++;
+                    if (sampleIsShaded(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t)) {
+                        shaded++;
+                    }
+                }
+            }
+            const last = coords[coords.length - 1];
+            if (last) {
+                samples++;
+                if (sampleIsShaded(last.lat, last.lon)) shaded++;
+            }
+
+            return samples ? Math.round((shaded / samples) * 100) : 0;
+        }
+
+        async function annotateRoutesWithShade(entries) {
+            const generation = routeGeneration;
+            const treeIndex = await ensureShadeTreeIndex();
+            if (!treeIndex || !entries.length) return;
+            if (generation !== routeGeneration) return; // routes changed while loading
+
+            entries.forEach(entry => {
+                entry.shadePct = routeShadePercent(entry.coords, treeIndex);
+            });
+
+            // The recommendation is earned by the measured tree cover, not by
+            // whichever route the router happened to return first.
+            const ranked = [...entries].sort((a, b) => b.shadePct - a.shadePct);
+            ranked.forEach((entry, rank) => {
+                entry.name = rank === 0
+                    ? 'Most shaded (recommended)'
+                    : `Alternate route ${rank}`;
+            });
+
+            renderRouteChooser(ranked);
+            // The measured-best route becomes the highlighted default
+            selectRoute(ranked[0].index, { fit: false });
+
+            // Mirror the metric into the side panel cards
+            entries.forEach(entry => {
+                const item = routeItemEls[entry.index];
+                if (!item) return;
+                const heading = item.querySelector('h3');
+                if (heading) heading.textContent = entry.name;
+                const stat = document.createElement('p');
+                stat.textContent = `Tree cover: ${entry.shadePct}%`;
+                item.insertBefore(stat, item.querySelector('.gmaps-handoff-row'));
+            });
         }
 
         // Floating on-map route picker: choose an option, open it in Google Maps
@@ -4620,24 +4799,28 @@
             const chooser = document.getElementById('route-chooser');
             const optionsEl = document.getElementById('route-chooser-options');
             optionsEl.innerHTML = '';
+            chooserRowEls = [];
 
             if (!entries.length) {
                 chooser.classList.remove('open');
                 return;
             }
 
-            entries.forEach((entry, index) => {
+            entries.forEach(entry => {
                 const row = document.createElement('div');
-                row.className = 'route-chooser-option' + (index === 0 ? ' active' : '');
+                row.className = 'route-chooser-option' + (entry.index === activeRouteIndex ? ' active' : '');
 
                 const meta = document.createElement('div');
                 meta.className = 'route-chooser-meta';
                 const nameEl = document.createElement('div');
                 nameEl.className = 'route-chooser-name';
-                nameEl.textContent = index === 0 ? 'Most shaded (recommended)' : entry.name;
+                nameEl.textContent = entry.name;
                 const statsEl = document.createElement('div');
                 statsEl.className = 'route-chooser-stats';
                 statsEl.textContent = `${entry.distance} km · ${entry.time} min`;
+                if (typeof entry.shadePct === 'number') {
+                    statsEl.textContent += ` · ${entry.shadePct}% tree cover`;
+                }
                 meta.appendChild(nameEl);
                 meta.appendChild(statsEl);
 
@@ -4651,13 +4834,9 @@
 
                 row.appendChild(meta);
                 row.appendChild(goBtn);
-                row.onclick = () => {
-                    optionsEl.querySelectorAll('.route-chooser-option').forEach(el => el.classList.remove('active'));
-                    row.classList.add('active');
-                    // reuse the side panel card's highlight behavior
-                    if (entry.item && typeof entry.item.onclick === 'function') entry.item.onclick();
-                };
+                row.onclick = () => selectRoute(entry.index, { fit: true });
                 optionsEl.appendChild(row);
+                chooserRowEls[entry.index] = row;
             });
 
             chooser.classList.add('open');
@@ -5255,6 +5434,8 @@ Only respond with valid JSON, no explanation.`;
         function clearRoutes(resetExplore = false) {
             routeLayers.forEach(layer => map.removeLayer(layer));
             routeLayers = [];
+            routeHitLayers.forEach(layer => map.removeLayer(layer));
+            routeHitLayers = [];
             routesData = [];
             resetTurnAlerts();
             // Remove tree canopy dots
