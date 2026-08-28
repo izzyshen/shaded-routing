@@ -1110,6 +1110,16 @@
             font-weight: 700;
         }
 
+        .route-chooser-sun {
+            padding: 0 14px 8px;
+            font-size: 11px;
+            color: var(--text-secondary, #6e6e73);
+        }
+
+        .route-chooser-sun:empty {
+            display: none;
+        }
+
         .route-chooser-close {
             border: none;
             background: none;
@@ -1231,6 +1241,7 @@
             <span>Shaded routes</span>
             <button class="route-chooser-close" id="route-chooser-close" aria-label="Hide route list">✕</button>
         </div>
+        <div class="route-chooser-sun" id="sun-status"></div>
         <div id="route-chooser-options"></div>
     </div>
 
@@ -1754,7 +1765,9 @@
                     regionId = 'boston';
                 }
             }
-            const response = await fetch(`${REGION_BASE}/${regionId}/region.json`);
+            // The manifest is tiny and steers everything else; never let a stale
+            // cached copy point the app at outdated data files
+            const response = await fetch(`${REGION_BASE}/${regionId}/region.json`, { cache: 'no-cache' });
             if (!response.ok) {
                 throw new Error(`Unable to load region manifest for "${regionId}"`);
             }
@@ -4075,7 +4088,12 @@
             }
 
             try {
-                const treecanopyFactor = parseFloat(document.getElementById('treecanopy-factor').value) / 100.0;
+                // The slider is the user's ceiling; how much of it applies now
+                // depends on the sun and sky (overcast dusk needs no detours)
+                const shadeDemandNow = shadeDemand(currentSun(), currentWeather);
+                const treecanopyFactor =
+                    (parseFloat(document.getElementById('treecanopy-factor').value) / 100.0) *
+                    (0.25 + 0.75 * shadeDemandNow);
                 const servicePenalty = parseFloat(document.getElementById('service-penalty').value);
                 const serviceFactor = parseFloat(document.getElementById('service-factor').value) / 100.0;
                 const useTracks = parseFloat(document.getElementById('use-tracks').value) / 100.0;
@@ -4657,14 +4675,94 @@
             }
         }
 
-        // --- Per-route shade metric ---------------------------------------
-        // Measures each route against the same street-tree data the routing
-        // engine scores with: a stretch of the walk counts as shaded when a
-        // mapped tree sits within the canopy radius the region manifest
-        // declares (Boston: 18 m). Reported as % of the route's length.
+        // --- Sun position, weather, and per-route shade metric -------------
+        // A tree only shades the sidewalk where its shadow actually falls, so
+        // the metric models each tree's crown from its trunk diameter (DBH)
+        // and displaces the shade by the current sun angle:
+        //   crown radius  r_c = clamp(0.5 + 0.33*DBH_in, 1, 8) m
+        //   crown height  h_c = clamp(2.5 + 0.40*DBH_in, 3, 12) m
+        //   shadow offset o   = min(h_c / tan(elevation), 25) m, away from sun
+        // A route sample is shaded when it lies within r_c + 2 m of some
+        // tree's displaced shade center. Weather (Open-Meteo, keyless) sets
+        // how much shade matters right now:
+        //   D = clamp(sin(el)/sin(60°),0,1) * (1-0.75*cloud) * clamp((T-18)/14, 0.3, 1)
+        // and the routing request's canopy factor is scaled by D.
         let shadeTreeIndex = null;
         let shadeTreeIndexPromise = null;
         let routeGeneration = 0;
+        let currentWeather = null; // {tempC, cloudPct, uv, fetchedAt}
+
+        function solarPosition(date, lat, lon) {
+            const rad = Math.PI / 180;
+            const d = (date.getTime() / 86400000) - 10957.5; // days since J2000
+            const g = rad * ((357.529 + 0.98560028 * d) % 360);
+            const q = (280.459 + 0.98564736 * d) % 360;
+            const L = rad * (q + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g));
+            const e = rad * (23.439 - 0.00000036 * d);
+            const RA = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L)) / rad;
+            const dec = Math.asin(Math.sin(e) * Math.sin(L));
+            const gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+            const H = rad * (((gmst * 15 + lon - RA) % 360 + 540) % 360 - 180);
+            const latR = lat * rad;
+            const elevation = Math.asin(
+                Math.sin(latR) * Math.sin(dec) + Math.cos(latR) * Math.cos(dec) * Math.cos(H));
+            const azimuth = Math.atan2(
+                -Math.sin(H),
+                Math.tan(dec) * Math.cos(latR) - Math.sin(latR) * Math.cos(H));
+            return { elevationDeg: elevation / rad, azimuthDeg: ((azimuth / rad) + 360) % 360 };
+        }
+
+        async function ensureWeather() {
+            const center = (regionConfig && regionConfig.center) || { lat: 42.35, lon: -71.08 };
+            if (currentWeather && Date.now() - currentWeather.fetchedAt < 15 * 60 * 1000) {
+                return currentWeather;
+            }
+            try {
+                const url = 'https://api.open-meteo.com/v1/forecast' +
+                    `?latitude=${center.lat}&longitude=${center.lon}` +
+                    '&current=temperature_2m,cloud_cover,uv_index';
+                const response = await fetch(url);
+                const data = await response.json();
+                currentWeather = {
+                    tempC: data.current.temperature_2m,
+                    cloudPct: data.current.cloud_cover,
+                    uv: data.current.uv_index,
+                    fetchedAt: Date.now()
+                };
+            } catch (error) {
+                console.warn('Weather unavailable, using neutral defaults:', error);
+                currentWeather = { tempC: 26, cloudPct: 30, uv: 5, fetchedAt: Date.now() };
+            }
+            return currentWeather;
+        }
+
+        function currentSun() {
+            const center = (regionConfig && regionConfig.center) || { lat: 42.35, lon: -71.08 };
+            return solarPosition(new Date(), center.lat, center.lon);
+        }
+
+        function updateSunStatus(sun, weather) {
+            const el = document.getElementById('sun-status');
+            if (!el) return;
+            if (sun.elevationDeg <= 0) {
+                el.textContent = '🌙 Sun is down — ranked by tree cover only';
+                return;
+            }
+            const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const dir = dirs[Math.round(sun.azimuthDeg / 45) % 8];
+            const demandPct = Math.round(shadeDemand(sun, weather) * 100);
+            el.textContent = `☀️ ${Math.round(weather.tempC)}°C · ${Math.round(weather.cloudPct)}% cloud` +
+                ` · sun ${Math.round(sun.elevationDeg)}° ${dir} · shade weight ${demandPct}%`;
+        }
+
+        // How much shade matters right now, in [0, 1]
+        function shadeDemand(sun, weather) {
+            const sunFactor = Math.max(0, Math.min(1,
+                Math.sin(sun.elevationDeg * Math.PI / 180) / Math.sin(60 * Math.PI / 180)));
+            const skyFactor = 1 - 0.75 * ((weather ? weather.cloudPct : 30) / 100);
+            const heatFactor = Math.max(0.3, Math.min(1, ((weather ? weather.tempC : 26) - 18) / 14));
+            return sunFactor * skyFactor * heatFactor;
+        }
 
         async function ensureShadeTreeIndex() {
             if (shadeTreeIndex) return shadeTreeIndex;
@@ -4689,6 +4787,10 @@
                             const geom = feature.geometry;
                             const points = geom.type === 'Point' ? [geom.coordinates]
                                 : geom.type === 'MultiPoint' ? geom.coordinates : [];
+                            const dbh = Number((feature.properties || {}).dbh) || 6;
+                            // street-tree allometry: crown size grows with trunk size
+                            const crownR = Math.max(1, Math.min(8, 0.5 + 0.33 * dbh));
+                            const crownH = Math.max(3, Math.min(12, 2.5 + 0.40 * dbh));
                             for (const coord of points) {
                                 if (!coord || coord.length < 2) continue;
                                 const key = cellKey(coord[1], coord[0]);
@@ -4697,7 +4799,7 @@
                                     bucket = [];
                                     cells.set(key, bucket);
                                 }
-                                bucket.push([coord[1], coord[0]]);
+                                bucket.push([coord[1], coord[0], crownR, crownH]);
                                 treeCount++;
                             }
                         }
@@ -4714,21 +4816,38 @@
             return shadeTreeIndexPromise;
         }
 
-        function routeShadePercent(coords, treeIndex) {
-            const { cellSizeDeg, cells, radiusM } = treeIndex;
+        function routeShadePercent(coords, treeIndex, sun) {
+            const { cellSizeDeg, cells } = treeIndex;
             const stepMeters = 12;
+            const walkBuffer = 2; // geocoding/sidewalk slack, meters
             let samples = 0;
             let shaded = 0;
+
+            // Shadows displace away from the sun; below ~5° elevation the sun
+            // is effectively down and proximity-to-canopy is the best estimate.
+            const rad = Math.PI / 180;
+            const sunUp = sun && sun.elevationDeg > 5;
+            const tanEl = sunUp ? Math.tan(sun.elevationDeg * rad) : Infinity;
+            const shadowBearing = sunUp ? (sun.azimuthDeg + 180) * rad : 0;
+            const latMPerDeg = 111320;
 
             const sampleIsShaded = (lat, lon) => {
                 const ci = Math.floor(lat / cellSizeDeg);
                 const cj = Math.floor(lon / cellSizeDeg);
+                const lonMPerDeg = latMPerDeg * Math.cos(lat * rad);
                 for (let di = -1; di <= 1; di++) {
                     for (let dj = -1; dj <= 1; dj++) {
                         const bucket = cells.get(`${ci + di}:${cj + dj}`);
                         if (!bucket) continue;
-                        for (const [treeLat, treeLon] of bucket) {
-                            if (haversineDistanceMeters(lat, lon, treeLat, treeLon) <= radiusM) {
+                        for (const [treeLat, treeLon, crownR, crownH] of bucket) {
+                            let shadeLat = treeLat;
+                            let shadeLon = treeLon;
+                            if (sunUp) {
+                                const offset = Math.min(crownH / tanEl, 25);
+                                shadeLat += (offset * Math.cos(shadowBearing)) / latMPerDeg;
+                                shadeLon += (offset * Math.sin(shadowBearing)) / lonMPerDeg;
+                            }
+                            if (haversineDistanceMeters(lat, lon, shadeLat, shadeLon) <= crownR + walkBuffer) {
                                 return true;
                             }
                         }
@@ -4761,13 +4880,15 @@
 
         async function annotateRoutesWithShade(entries) {
             const generation = routeGeneration;
-            const treeIndex = await ensureShadeTreeIndex();
+            const [treeIndex, weather] = await Promise.all([ensureShadeTreeIndex(), ensureWeather()]);
             if (!treeIndex || !entries.length) return;
             if (generation !== routeGeneration) return; // routes changed while loading
 
+            const sun = currentSun();
             entries.forEach(entry => {
-                entry.shadePct = routeShadePercent(entry.coords, treeIndex);
+                entry.shadePct = routeShadePercent(entry.coords, treeIndex, sun);
             });
+            updateSunStatus(sun, weather);
 
             // The recommendation is earned by the measured tree cover, not by
             // whichever route the router happened to return first.
@@ -6565,12 +6686,14 @@ Only respond with valid JSON, no explanation.`;
                 initUIControls();
                 initAIFeatures();
                 setupDestinationSearch();
+                ensureWeather(); // warm the cache so the first route uses real conditions
             });
         } else {
             initServerUrlDefault();
             initUIControls();
             initAIFeatures();
             setupDestinationSearch();
+            ensureWeather();
         }
 
         // Tree canopy dot creation helper function

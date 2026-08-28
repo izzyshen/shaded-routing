@@ -58,6 +58,34 @@ shows the same link for phone handoff. Caveats: the Maps app honors at most 9
 waypoints (mobile browsers only 3), and between waypoints Google may deviate
 from the shaded ideal on long routes.
 
+## Shade model
+
+Boston's street-tree inventory mixes real trees with empty planting pits,
+scheduled sites, and stumps; `trees_clean.geojson` keeps only live trees with a
+trunk (DBH > 1"). Each tree's shade is modeled from its trunk diameter:
+
+```
+crown radius  r_c = clamp(0.5 + 0.33·DBH_in, 1, 8)  m
+crown height  h_c = clamp(2.5 + 0.40·DBH_in, 3, 12) m
+shadow offset o   = min(h_c / tan(sun elevation), 25) m, cast away from the sun
+```
+
+A route sample (every ~12 m) counts as shaded when it falls within
+`r_c + 2 m` of a tree's displaced shade center; the sun's azimuth/elevation
+come from the NOAA solar equations, computed client-side. How much shade
+matters *right now* scales the routing request's canopy factor:
+
+```
+D = clamp(sin(el)/sin(60°), 0, 1)      sun height: 0 at horizon, 1 near overhead
+  · (1 − 0.75·cloud)                    Open-Meteo cloud cover (keyless API)
+  · clamp((T − 18)/14, 0.3, 1)          heat: mild days need less shade
+effective factor = slider · (0.25 + 0.75·D)
+```
+
+So an overcast dusk routes nearly straight, a clear 32 °C noon applies the
+user's full shade preference, and the per-route "% shaded" reflects where
+shadows actually fall at walk time.
+
 ## Build notes (macOS)
 
 Two environment pitfalls are worth knowing:

@@ -2,11 +2,28 @@
   "id": "boston",
   "name": "Boston",
   "attribution": "Data: Analyze Boston (boston.gov), Boston Parks & Recreation",
-  "bounds": { "latMin": 42.15, "latMax": 42.5, "lonMin": -71.3, "lonMax": -70.85 },
-  "center": { "lat": 42.3509, "lon": -71.0814, "zoom": 13 },
+  "bounds": {
+    "latMin": 42.15,
+    "latMax": 42.5,
+    "lonMin": -71.3,
+    "lonMax": -70.85
+  },
+  "center": {
+    "lat": 42.3509,
+    "lon": -71.0814,
+    "zoom": 13
+  },
   "defaults": {
-    "origin": { "lat": 42.3551, "lon": -71.0656, "label": "Boston Common" },
-    "destination": { "lat": 42.3467, "lon": -71.0972, "label": "Fenway Park" }
+    "origin": {
+      "lat": 42.3551,
+      "lon": -71.0656,
+      "label": "Boston Common"
+    },
+    "destination": {
+      "lat": 42.3467,
+      "lon": -71.0972,
+      "label": "Fenway Park"
+    }
   },
   "canopy": {
     "sources": [
@@ -17,34 +34,81 @@
         "value_property": "TC_E_P",
         "value_scale": 100
       },
-      { "file": "trees.geojson", "kind": "point", "radius_m": 18, "saturation": 4, "weight": 0.6 }
+      {
+        "file": "trees_clean.geojson",
+        "kind": "point",
+        "radius_m": 18,
+        "saturation": 4,
+        "weight": 0.6
+      }
     ],
-    "display": { "stroke": "#4F6F52", "fill": "#A8C2A5", "point": "#4B7458", "pointRadius": 1.2 }
+    "display": {
+      "stroke": "#4F6F52",
+      "fill": "#A8C2A5",
+      "point": "#4B7458",
+      "pointRadius": 1.2
+    }
   },
   "layers": [
     {
       "slot": 0,
       "name": "open_space",
       "label": "Parks & Open Space",
-      "sources": [{ "file": "open_space.geojson", "kind": "polygon", "proximity_m": 20 }],
-      "display": { "stroke": "#5A98A0", "fill": "#DCEFF2", "point": "#3F7E85", "pointRadius": 1.15 }
+      "sources": [
+        {
+          "file": "open_space.geojson",
+          "kind": "polygon",
+          "proximity_m": 20
+        }
+      ],
+      "display": {
+        "stroke": "#5A98A0",
+        "fill": "#DCEFF2",
+        "point": "#3F7E85",
+        "pointRadius": 1.15
+      }
     },
     {
       "slot": 1,
       "name": "water",
       "label": "Water",
       "sources": [
-        { "file": "hydrography_polygon.geojson", "kind": "polygon", "proximity_m": 40 },
-        { "file": "hydrography_line.geojson", "kind": "line", "radius_m": 40, "weight": 0.5 }
+        {
+          "file": "hydrography_polygon.geojson",
+          "kind": "polygon",
+          "proximity_m": 40
+        },
+        {
+          "file": "hydrography_line.geojson",
+          "kind": "line",
+          "radius_m": 40,
+          "weight": 0.5
+        }
       ],
-      "display": { "stroke": "#2F4F76", "fill": "#9FB7D2", "point": "#3F6794" }
+      "display": {
+        "stroke": "#2F4F76",
+        "fill": "#9FB7D2",
+        "point": "#3F6794"
+      }
     },
     {
       "slot": 2,
       "name": "street_lights",
       "label": "Street Lights",
-      "sources": [{ "file": "street_lights.geojson", "kind": "point", "radius_m": 25, "saturation": 3 }],
-      "display": { "stroke": "#F2C200", "fill": "#FFF6C2", "point": "#FFDB4D", "pointRadius": 1.1 }
+      "sources": [
+        {
+          "file": "street_lights.geojson",
+          "kind": "point",
+          "radius_m": 25,
+          "saturation": 3
+        }
+      ],
+      "display": {
+        "stroke": "#F2C200",
+        "fill": "#FFF6C2",
+        "point": "#FFDB4D",
+        "pointRadius": 1.1
+      }
     }
   ],
   "overlays": [
@@ -52,7 +116,12 @@
       "name": "landmarks",
       "label": "Landmarks",
       "file": "landmarks.geojson",
-      "display": { "stroke": "#8F3D7A", "fill": "#F1C9E6", "point": "#B55BA0", "pointRadius": 1.35 }
+      "display": {
+        "stroke": "#8F3D7A",
+        "fill": "#F1C9E6",
+        "point": "#B55BA0",
+        "pointRadius": 1.35
+      }
     },
     {
       "name": "police_stations",
@@ -62,9 +131,15 @@
         "stroke": "#1F2C70",
         "fill": "#9CA6DD",
         "point": "#142052",
-        "pointRadiusRange": [3.5, 7.5],
+        "pointRadiusRange": [
+          3.5,
+          7.5
+        ],
         "scaleWithZoom": true,
-        "zoomRange": [11, 18]
+        "zoomRange": [
+          11,
+          18
+        ]
       }
     }
   ]
